@@ -18,6 +18,7 @@ use XML::LibXML;
 use DateTime;
 use Digest::MD5 qw(md5_hex);
 use HTML::Entities;
+use JSON qw(decode_json);
 
 ## Here we set our plugin version
 our $VERSION = "00.00.12";
@@ -120,8 +121,7 @@ sub opac_online_payment_begin {
     # Construct callback URI
     my $callback_url =
       URI->new( C4::Context->preference('OPACBaseURL')
-          . $self->get_plugin_http_path()
-          . "/callback.pl" );
+          . "/api/v1/contrib/wpmpayments/callback" );
 
     # Construct cancel URI
     my $cancel_url = URI->new( C4::Context->preference('OPACBaseURL')
@@ -620,5 +620,32 @@ sub install() {
 #
 #    return C4::Context->dbh->do("DROP TABLE $table");
 #}
+
+=head3 api_namespace
+
+Define the namespace for the plugin's API routes
+
+=cut
+
+sub api_namespace {
+    my ($self) = @_;
+
+    return 'wpmpayments';
+}
+
+=head3 api_routes
+
+Define the API routes provided by this plugin
+
+=cut
+
+sub api_routes {
+    my ($self) = @_;
+
+    my $spec_str = $self->mbf_read('api/openapi.json');
+    my $spec     = decode_json($spec_str);
+
+    return $spec;
+}
 
 1;
