@@ -21,17 +21,17 @@ Once set up is complete you will need to alter your UseKohaPlugins system prefer
 
 # Setup
 
-You will need to add to the apache config for your site:
+The plugin now uses Koha's REST API for payment callbacks, eliminating the need for Apache configuration directives.
+
+## API Endpoint
+
+The WPM callback endpoint is now available at:
 ```
-   Alias /plugin/ "/var/lib/koha/kohadev/plugins/"
-   # The stanza below is needed for Apache 2.4+
-   <Directory /var/lib/koha/kohadev/plugins/>
-         Options Indexes FollowSymLinks
-         AllowOverride None
-         Require all granted
-         Options +ExecCGI
-         AddHandler cgi-script .pl
-    </Directory>
+/api/v1/contrib/wpmpayments/callback
 ```
 
-You may also need to add to PERL5LIB
+This endpoint accepts POST requests with XML payloads from the WPM payment system.
+
+## Legacy Setup (Deprecated)
+
+Previous versions required Apache configuration for CGI script access. This is no longer needed with the API-based approach
