@@ -1,10 +1,10 @@
 use utf8;
 
-package Koha::Schema::Result::KohaPluginComPtfseuropeWpmpaymentWpmTransaction;
+package Koha::Schema::Result::KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction;
 
 =head1 NAME
 
-Koha::Schema::Result::KohaPluginComPtfseuropeWpmpaymentWpmTransaction
+Koha::Schema::Result::KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction
 
 =cut
 
@@ -13,11 +13,11 @@ use warnings;
 
 use base 'DBIx::Class::Core';
 
-=head1 TABLE: C<koha_plugin_com_ptfseurope_wpmpayments_wmp_transactions>
+=head1 TABLE: C<koha_plugin_com_openfifth_flywirepayments_flywire_transactions>
 
 =cut
 
-__PACKAGE__->table("koha_plugin_com_ptfseurope_wpmpayments_wmp_transactions");
+__PACKAGE__->table("koha_plugin_com_openfifth_flywirepayments_flywire_transactions");
 
 =head1 ACCESSORS
 
@@ -102,11 +102,11 @@ __PACKAGE__->belongs_to(
 );
 
 sub koha_object_class {
-    'Koha::WPMPayments::Transaction';
+    'Koha::FlywirePayments::Transaction';
 }
 
 sub koha_objects_class {
-    'Koha::WPMPayments::Transactions';
+    'Koha::FlywirePayments::Transactions';
 }
 
 1;

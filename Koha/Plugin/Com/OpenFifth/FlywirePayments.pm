@@ -1,6 +1,6 @@
 use utf8;
 
-package Koha::Plugin::Com::PTFSEurope::WPMPayments;
+package Koha::Plugin::Com::OpenFifth::FlywirePayments;
 
 use Modern::Perl;
 
@@ -19,10 +19,10 @@ BEGIN {
     $path =~ s{[.]pm$}{/lib}xms;
     unshift @INC, $path;
 
-    require Koha::WPMPayments::Transactions;
-    require Koha::Schema::Result::KohaPluginComPtfseuropeWpmpaymentWpmTransaction;
+    require Koha::FlywirePayments::Transactions;
+    require Koha::Schema::Result::KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction;
     Koha::Schema->register_class(
-        KohaPluginComPtfseuropeWpmpaymentWpmTransaction => 'Koha::Schema::Result::KohaPluginComPtfseuropeWpmpaymentWpmTransaction'
+        KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction => 'Koha::Schema::Result::KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction'
     );
 
     Koha::Database->schema({ new => 1 });
@@ -42,7 +42,7 @@ our $debug   = 0;
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
-    name            => 'WPM Online Payments Plugin',
+    name            => 'Flywire Online Payments Plugin',
     author          => 'Martin Renvoize',
     date_authored   => '2018-06-13',
     date_updated    => "2023-07-13",
@@ -50,12 +50,12 @@ our $metadata = {
     maximum_version => '22.11.24.000',
     version         => $VERSION,
     description     => 'This plugin implements online payments using '
-      . 'WPM Educations payments platform.',
+      . 'Flywire payments platform.',
 };
 
-## Map Koha system debit types to WPM fee_Type codes
-# WPM refuse to update their implimentation to reflect changes to Koha
-# so we have this mapping for compatability.
+## Map Koha system debit types to Flywire fee_Type codes
+# Flywire refuse to update their implementation to reflect changes to Koha
+# so we have this mapping for compatibility.
 our %system_type_map = (
     'OVERDUE' => 'F',
     'LOST'    => 'L'
@@ -116,7 +116,7 @@ sub opac_online_payment_begin {
     my $borrower_result = Koha::Patrons->find($borrowernumber);
 
     # Create a transaction using object-oriented approach
-    my $transaction = Koha::WPMPayments::Transaction->new({
+    my $transaction = Koha::FlywirePayments::Transaction->new({
         accountline_id => undef
     })->store();
     my $transaction_id = $transaction->transaction_id;
@@ -134,7 +134,7 @@ sub opac_online_payment_begin {
     # Construct callback URI
     my $callback_url =
       URI->new( C4::Context->preference('OPACBaseURL')
-          . "/api/v1/contrib/wpmpayments/callback" );
+          . "/api/v1/contrib/flywirepayments/callback" );
 
     # Construct cancel URI
     my $cancel_url = URI->new( C4::Context->preference('OPACBaseURL')
@@ -152,7 +152,7 @@ sub opac_online_payment_begin {
 
     # Construct XML POST
     my $xml  = XML::LibXML::Document->new( '1.0', 'utf-8' );
-    my $root = $xml->createElement('wpmpaymentrequest');
+    my $root = $xml->createElement('flywire_paymentrequest');
 
     # Email handling
     my @addrs = Email::Address->parse(C4::Context->preference('KohaAdminEmailAddress'));
@@ -162,7 +162,7 @@ sub opac_online_payment_begin {
         {
             name  => 'clientid',
             value =>
-              { value => $self->retrieve_data('WPMClientID'), cdata => 0 }
+              { value => $self->retrieve_data('FlywireClientID'), cdata => 0 }
         },
         {
             name  => 'requesttype',
@@ -171,12 +171,12 @@ sub opac_online_payment_begin {
         {
             name  => 'pathwayid',
             value =>
-              { value => $self->retrieve_data('WPMPathwayID'), cdata => 0 }
+              { value => $self->retrieve_data('FlywirePathwayID'), cdata => 0 }
         },
         {
             name  => 'departmentid',
             value => {
-                value => $self->retrieve_data('WPMDepartmentID'),
+                value => $self->retrieve_data('FlywireDepartmentID'),
                 cdata => 0
             }
         },
@@ -424,10 +424,10 @@ sub opac_online_payment_begin {
     $sum = sprintf "%.2f", $sum;
     $debug and warn "Total to pay" . $sum;
     my $msgid =
-      md5_hex( $self->retrieve_data('WPMClientID')
+      md5_hex( $self->retrieve_data('FlywireClientID')
           . $transaction_id
           . $sum
-          . $self->retrieve_data('WPMSecret') );
+          . $self->retrieve_data('FlywireSecret') );
     $root->setAttribute( 'msgid' => "$msgid" );
 
     # Finalise XML Document
@@ -435,7 +435,7 @@ sub opac_online_payment_begin {
     my $string = $xml->toString(2);
 
     $template->param(
-        WPMPathway => $self->retrieve_data('WPMPathway'),
+        FlywirePathway => $self->retrieve_data('FlywirePathway'),
         XMLPost    => $string
     );
 
@@ -468,7 +468,7 @@ sub opac_online_payment_end {
     my $transaction_id = $cgi->param('transaction_id');
 
     # Check payment went through here using object-oriented approach
-    my $transaction = Koha::WPMPayments::Transactions->find($transaction_id);
+    my $transaction = Koha::FlywirePayments::Transactions->find($transaction_id);
     my $accountline_id = $transaction ? $transaction->accountline_id : undef;
 
     my $line =
@@ -523,11 +523,11 @@ sub configure {
         $template->param(
             enable_opac_payments =>
               $self->retrieve_data('enable_opac_payments'),
-            WPMClientID          => $self->retrieve_data('WPMClientID'),
-            WPMSecret            => $self->retrieve_data('WPMSecret'),
-            WPMPathway           => $self->retrieve_data('WPMPathway'),
-            WPMPathwayID         => $self->retrieve_data('WPMPathwayID'),
-            WPMDepartmentID      => $self->retrieve_data('WPMDepartmentID'),
+            FlywireClientID          => $self->retrieve_data('FlywireClientID'),
+            FlywireSecret            => $self->retrieve_data('FlywireSecret'),
+            FlywirePathway           => $self->retrieve_data('FlywirePathway'),
+            FlywirePathwayID         => $self->retrieve_data('FlywirePathwayID'),
+            FlywireDepartmentID      => $self->retrieve_data('FlywireDepartmentID'),
             DefaultVATDesc       => $self->retrieve_data('DefaultVATDesc'),
             DefaultVATCode       => $self->retrieve_data('DefaultVATCode'),
             DefaultVATRate       => $self->retrieve_data('DefaultVATRate'),
@@ -553,11 +553,11 @@ sub configure {
             {
                 enable_opac_payments =>
                   scalar $cgi->param('enable_opac_payments'),
-                WPMClientID          => scalar $cgi->param('WPMClientID'),
-                WPMSecret            => scalar $cgi->param('WPMSecret'),
-                WPMPathway           => scalar $cgi->param('WPMPathway'),
-                WPMPathwayID         => scalar $cgi->param('WPMPathwayID'),
-                WPMDepartmentID      => scalar $cgi->param('WPMDepartmentID'),
+                FlywireClientID          => scalar $cgi->param('FlywireClientID'),
+                FlywireSecret            => scalar $cgi->param('FlywireSecret'),
+                FlywirePathway           => scalar $cgi->param('FlywirePathway'),
+                FlywirePathwayID         => scalar $cgi->param('FlywirePathwayID'),
+                FlywireDepartmentID      => scalar $cgi->param('FlywireDepartmentID'),
                 DefaultVATDesc       => scalar $cgi->param('DefaultVATDesc'),
                 DefaultVATCode       => scalar $cgi->param('DefaultVATCode'),
                 DefaultVATRate       => scalar $cgi->param('DefaultVATRate'),
@@ -595,7 +595,7 @@ sub install() {
         }
     );
 
-    my $table = $self->get_qualified_table_name('wpm_transactions');
+    my $table = $self->get_qualified_table_name('flywire_transactions');
 
     return C4::Context->dbh->do( "
         CREATE TABLE IF NOT EXISTS $table (
@@ -639,7 +639,7 @@ Define the namespace for the plugin's API routes
 sub api_namespace {
     my ($self) = @_;
 
-    return 'wpmpayments';
+    return 'flywirepayments';
 }
 
 =head3 api_routes

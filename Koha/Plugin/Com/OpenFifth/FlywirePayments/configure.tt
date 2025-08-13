@@ -1,5 +1,5 @@
 [% INCLUDE 'doc-head-open.inc' %]
- <title>Koha: WPM Online Payments: Configuration</title>
+ <title>Koha: Flywire Online Payments: Configuration</title>
 [% INCLUDE 'doc-head-close.inc' %]
 </head>
 <body>
@@ -7,7 +7,7 @@
 [% INCLUDE 'cat-search.inc' %]
 [%- stag = "[\%" etag = "%\]" -%]
 
-<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; WPM Online Payments &rsaquo; Configuration</div>
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Flywire Online Payments &rsaquo; Configuration</div>
 
 <div class="main container-fluid">
     <div class="row">
@@ -15,7 +15,7 @@
         <div class="col-sm-10 col-sm-push-2">
             <main>
 
-                <h1>Koha: WPM Online Payments: Configuration</h1>
+                <h1>Koha: Flywire Online Payments: Configuration</h1>
             
                 <!-- Notice our form here has no 'action', this is good, it means that our forms will always get passed back to 'plugins/run.pl'. You could hard code it instead if you prefer -->
                 <form method="get">
@@ -47,31 +47,31 @@
                     </fieldset>
             
                     <fieldset class="rows">
-                        <legend>WPM Settings</legend>
+                        <legend>Flywire Settings</legend>
                         <ol>
                             <li>
-                                <label for="WPMClientID">Client ID: </label>
-                                <input type="text" name="WPMClientID" value="[% WPMClientID %]" />
+                                <label for="FlywireClientID">Client ID: </label>
+                                <input type="text" name="FlywireClientID" value="[% FlywireClientID %]" />
                             </li>
 
                             <li>
-                                <label for="WPMSecret">Secret: </label>
-                                <input type="text" name="WPMSecret" value="[% WPMSecret %]" />
+                                <label for="FlywireSecret">Secret: </label>
+                                <input type="text" name="FlywireSecret" value="[% FlywireSecret %]" />
                             </li>
 
                             <li>
-                                <label for="WPMPathway">Pathway: </label>
-                                <input type="text" name="WPMPathway" value="[% WPMPathway %]" />
+                                <label for="FlywirePathway">Pathway: </label>
+                                <input type="text" name="FlywirePathway" value="[% FlywirePathway %]" />
                             </li>
 
                             <li>
-                                <label for="WPMPathwayID">Pathway ID: </label>
-                                <input type="text" name="WPMPathwayID" value="[% WPMPathwayID %]" />
+                                <label for="FlywirePathwayID">Pathway ID: </label>
+                                <input type="text" name="FlywirePathwayID" value="[% FlywirePathwayID %]" />
                             </li>
                             
                             <li>
-                                <label for="WPMDepartmentID">Department ID: </label>
-                                <input type="text" name="WPMDepartmentID" value="[% WPMDepartmentID %]" />
+                                <label for="FlywireDepartmentID">Department ID: </label>
+                                <input type="text" name="FlywireDepartmentID" value="[% FlywireDepartmentID %]" />
                             </li>
                         </ol>
                     </fieldset>
@@ -151,7 +151,7 @@
                     <fieldset class="action">
                         <input type="hidden" name="save" value="1" />
                         <input type="submit" value="Save configuration" />
-                        <a class="cancel" href="/cgi-bin/koha/plugins/run.pl?class=Koha%3A%3APlugin%3A%3ACom%3A%3APTFSEurope%3A%3AWPMPayments&method=configure">Cancel</a>
+                        <a class="cancel" href="/cgi-bin/koha/plugins/run.pl?class=Koha%3A%3APlugin%3A%3ACom%3A%3APTFSEurope%3A%3AFlywirePayments&method=configure">Cancel</a>
                     </fieldset>
                 </form>
             </main>

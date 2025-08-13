@@ -1,7 +1,7 @@
 {
   "/callback": {
     "post": {
-      "x-mojo-to": "Com::PTFSEurope::WPMPayments::Controllers::Callback#process",
+      "x-mojo-to": "Com::OpenFifth::FlywirePayments::Controllers::Callback#process",
       "operationId": "processPaymentCallback",
       "tags": [
         "payments"
@@ -17,7 +17,7 @@
           "name": "body",
           "in": "body",
           "required": true,
-          "description": "WPM payment callback XML data",
+          "description": "Flywire payment callback XML data",
           "schema": {
             "type": "string",
             "format": "xml"

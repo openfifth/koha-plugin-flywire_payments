@@ -1,4 +1,4 @@
-package Koha::Plugin::Com::PTFSEurope::WPMPayments::Controllers::Callback;
+package Koha::Plugin::Com::OpenFifth::FlywirePayments::Controllers::Callback;
 
 # This file is part of Koha.
 #
@@ -25,7 +25,7 @@ use Koha::Account;
 use Koha::Account::Lines;
 use Koha::Patrons;
 use Koha::Items;
-use Koha::Plugin::Com::PTFSEurope::WPMPayments;
+use Koha::Plugin::Com::OpenFifth::FlywirePayments;
 
 =head1 API
 
@@ -41,7 +41,7 @@ sub process {
     my $c = shift->openapi->valid_input or return;
 
     return try {
-        my $wmp_plugin = Koha::Plugin::Com::PTFSEurope::WPMPayments->new;
+        my $flywire_plugin = Koha::Plugin::Com::OpenFifth::FlywirePayments->new;
         my $callback_xml = $c->req->body;
         
         my $parsed_request = $c->_parse_payment_request($callback_xml);
@@ -54,10 +54,10 @@ sub process {
         $c->_ensure_user_environment($patron);
         
         if ($parsed_request->{payment_succeeded}) {
-            $c->_process_successful_payment($parsed_request, $wmp_plugin);
+            $c->_process_successful_payment($parsed_request, $flywire_plugin);
         }
         
-        return $c->_build_wmp_acknowledgment($parsed_request->{message_id});
+        return $c->_build_flywire_acknowledgment($parsed_request->{message_id});
         
     } catch {
         $c->unhandled_exception($_);
@@ -68,7 +68,7 @@ sub process {
 
 =head3 _parse_payment_request
 
-Parse the incoming WMP XML request
+Parse the incoming Flywire XML request
 
 =cut
 
@@ -80,17 +80,17 @@ sub _parse_payment_request {
         $payment_request_xml = XML::LibXML->load_xml(string => $xml_string);
     } catch {
         # For XML parsing errors, we need to return a custom response since
-        # WMP expects XML format, not standard Koha API error format
+        # Flywire expects XML format, not standard Koha API error format
         $c->render(status => 400, text => 'Invalid XML format', format => 'txt');
         return;
     };
 
     return {
-        borrowernumber => $payment_request_xml->findvalue('/wpmpaymentrequest/customerid'),
-        transaction_id => $payment_request_xml->findvalue('/wpmpaymentrequest/transactionreference'),
-        payment_succeeded => $payment_request_xml->findvalue('/wpmpaymentrequest/transaction/success') eq '1',
-        total_amount => $payment_request_xml->findvalue('/wpmpaymentrequest/transaction/totalpaid'),
-        message_id => $payment_request_xml->findvalue('/wpmpaymentrequest/@msgid'),
+        borrowernumber => $payment_request_xml->findvalue('/flywire_paymentrequest/customerid'),
+        transaction_id => $payment_request_xml->findvalue('/flywire_paymentrequest/transactionreference'),
+        payment_succeeded => $payment_request_xml->findvalue('/flywire_paymentrequest/transaction/success') eq '1',
+        total_amount => $payment_request_xml->findvalue('/flywire_paymentrequest/transaction/totalpaid'),
+        message_id => $payment_request_xml->findvalue('/flywire_paymentrequest/@msgid'),
         xml_document => $payment_request_xml,
     };
 }
@@ -121,7 +121,7 @@ Process a successful payment callback
 =cut
 
 sub _process_successful_payment {
-    my ($c, $request_data, $wmp_plugin) = @_;
+    my ($c, $request_data, $flywire_plugin) = @_;
     
     my $accountlines_to_pay = $c->_extract_accountlines_from_request($request_data->{xml_document});
     my $payment_processed = $c->_apply_payment_to_account(
@@ -129,11 +129,11 @@ sub _process_successful_payment {
         $request_data->{total_amount},
         $accountlines_to_pay,
         $request_data->{transaction_id},
-        $wmp_plugin
+        $flywire_plugin
     );
     
     if ($payment_processed) {
-        $c->_process_item_renewals($accountlines_to_pay, $wmp_plugin);
+        $c->_process_item_renewals($accountlines_to_pay, $flywire_plugin);
     }
     
     return $payment_processed;
@@ -149,7 +149,7 @@ sub _extract_accountlines_from_request {
     my ($c, $xml_document) = @_;
     
     my @accountline_ids_to_pay = ();
-    my $payment_nodes = $xml_document->findnodes('/wpmpaymentrequest/payments/payment[@paid="1"]');
+    my $payment_nodes = $xml_document->findnodes('/flywire_paymentrequest/payments/payment[@paid="1"]');
     
     for my $payment_node ($payment_nodes->get_nodelist) {
         my $accountline_id = $payment_node->findvalue('./@payid');
@@ -166,7 +166,7 @@ Apply payment to patron account
 =cut
 
 sub _apply_payment_to_account {
-    my ($c, $borrowernumber, $payment_amount, $accountline_ids, $transaction_id, $wmp_plugin) = @_;
+    my ($c, $borrowernumber, $payment_amount, $accountline_ids, $transaction_id, $flywire_plugin) = @_;
     
     my $lines_to_pay = Koha::Account::Lines->search(
         { accountlines_id => { 'in' => $accountline_ids } }
@@ -181,26 +181,26 @@ sub _apply_payment_to_account {
         lines => $lines_to_pay,
     });
     
-    my $payment_accountline_id = $wmp_plugin->_version_check('20.05.00') 
+    my $payment_accountline_id = $flywire_plugin->_version_check('20.05.00') 
         ? $payment_result->{payment_id} 
         : $payment_result;
     
-    $c->_link_payment_to_wmp_transaction($wmp_plugin, $payment_accountline_id, $transaction_id);
+    $c->_link_payment_to_flywire_transaction($flywire_plugin, $payment_accountline_id, $transaction_id);
     
     return $payment_accountline_id;
 }
 
-=head3 _link_payment_to_wmp_transaction
+=head3 _link_payment_to_flywire_transaction
 
-Link payment to WMP transaction tracking table
+Link payment to Flywire transaction tracking table
 
 =cut
 
-sub _link_payment_to_wmp_transaction {
-    my ($c, $wmp_plugin, $payment_id, $transaction_id) = @_;
+sub _link_payment_to_flywire_transaction {
+    my ($c, $flywire_plugin, $payment_id, $transaction_id) = @_;
     
     my $database_handle = C4::Context->dbh;
-    my $wmp_transactions_table = $wmp_plugin->get_qualified_table_name('wpm_transactions');
+    my $wmp_transactions_table = $flywire_plugin->get_qualified_table_name('flywire_transactions');
     
     my $update_statement = $database_handle->prepare(
         "UPDATE $wmp_transactions_table SET accountline_id = ? WHERE transaction_id = ?"
@@ -215,16 +215,16 @@ Process item renewals for paid fines (legacy versions only)
 =cut
 
 sub _process_item_renewals {
-    my ($c, $paid_lines, $wmp_plugin) = @_;
+    my ($c, $paid_lines, $flywire_plugin) = @_;
     
-    return if $wmp_plugin->_version_check('20.05.00');
+    return if $flywire_plugin->_version_check('20.05.00');
     
     for my $paid_line (@{$paid_lines}) {
         my $item_for_renewal = Koha::Items->find({ itemnumber => $paid_line->itemnumber });
         next unless $item_for_renewal;
         
-        if ($c->_item_eligible_for_renewal($paid_line, $wmp_plugin)) {
-            $c->_renew_item($paid_line, $wmp_plugin);
+        if ($c->_item_eligible_for_renewal($paid_line, $flywire_plugin)) {
+            $c->_renew_item($paid_line, $flywire_plugin);
         }
     }
 }
@@ -236,9 +236,9 @@ Check if item is eligible for renewal after payment
 =cut
 
 sub _item_eligible_for_renewal {
-    my ($c, $account_line, $wmp_plugin) = @_;
+    my ($c, $account_line, $flywire_plugin) = @_;
     
-    my $is_overdue_and_returned = $wmp_plugin->_version_check('19.11.00')
+    my $is_overdue_and_returned = $flywire_plugin->_version_check('19.11.00')
         ? ($account_line->debit_type_code eq "OVERDUE" && $account_line->status ne "UNRETURNED")
         : (defined($account_line->accounttype) && $account_line->accounttype eq "FU");
     
@@ -258,7 +258,7 @@ Renew an item after payment
 =cut
 
 sub _renew_item {
-    my ($c, $account_line, $wmp_plugin) = @_;
+    my ($c, $account_line, $flywire_plugin) = @_;
     
     my ($renewal_allowed, $renewal_error) = C4::Circulation::CanBookBeRenewed(
         $account_line->borrowernumber, 
@@ -268,7 +268,7 @@ sub _renew_item {
     
     return unless $renewal_allowed;
     
-    if ($wmp_plugin->_version_check('19.11.00')) {
+    if ($flywire_plugin->_version_check('19.11.00')) {
         C4::Circulation::AddRenewal($account_line->borrowernumber, $account_line->itemnumber);
     } else {
         C4::Circulation::_FixOverduesOnReturn($account_line->borrowernumber, $account_line->itemnumber);
@@ -276,17 +276,17 @@ sub _renew_item {
     }
 }
 
-=head3 _build_wmp_acknowledgment
+=head3 _build_flywire_acknowledgment
 
-Build WMP XML acknowledgment response
+Build Flywire XML acknowledgment response
 
 =cut
 
-sub _build_wmp_acknowledgment {
+sub _build_flywire_acknowledgment {
     my ($c, $original_message_id) = @_;
     
     my $acknowledgment_xml = XML::LibXML::Document->new('1.0', 'utf-8');
-    my $response_root = $acknowledgment_xml->createElement("wpmmessagevalidation");
+    my $response_root = $acknowledgment_xml->createElement("flywire_messagevalidation");
     $response_root->setAttribute('msgid' => $original_message_id);
 
     my $validation_element = $acknowledgment_xml->createElement('validation');

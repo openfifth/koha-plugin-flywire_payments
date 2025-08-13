@@ -1,6 +1,6 @@
-package Koha::WPMPayments::Transaction;
+package Koha::FlywirePayments::Transactions;
 
-# Copyright 2024 PTFS Europe
+# Copyright 2024 OpenFifth
 
 # This file is part of Koha.
 #
@@ -18,11 +18,13 @@ package Koha::WPMPayments::Transaction;
 # along with Koha; if not, see <http://www.gnu.org/licenses>.
 
 use Modern::Perl;
-use base qw(Koha::Object);
+use base qw(Koha::Objects);
+
+use Koha::FlywirePayments::Transaction;
 
 =head1 NAME
 
-Koha::WPMPayments::Transaction - Koha WPM Payments Transaction Object class
+Koha::FlywirePayments::Transactions - Koha Flywire Payments Transactions Object Set class
 
 =head1 API
 
@@ -33,7 +35,15 @@ Koha::WPMPayments::Transaction - Koha WPM Payments Transaction Object class
 =cut
 
 sub _type {
-    return 'KohaPluginComPtfseuropeWpmpaymentWpmTransaction';
+    return 'KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction';
+}
+
+=head3 object_class
+
+=cut
+
+sub object_class {
+    return 'Koha::FlywirePayments::Transaction';
 }
 
 1;

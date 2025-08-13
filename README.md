@@ -1,12 +1,12 @@
 # Introduction
 
-This Koha plugin enables a library to accept online payments from patrons using the WPM payments platform.
+This Koha plugin enables a library to accept online payments from patrons using the Flywire payments platform.
 
 Plugins are installed by uploading KPZ ( Koha Plugin Zip ) packages. A KPZ file is just a zip file containing the perl files, template files, and any other files necessary to make the plugin work. Learn more about the Koha Plugin System in the [Koha 3.22 Manual](http://manual.koha-community.org/3.22/en/pluginsystem.html).
 
 # Downloading
 
-From the [release page](https://github.com/ptfs-europe/koha-plugin-wpmpayments/releases) you can download the relevant *.kpz file
+From the [release page](https://github.com/openfifth/koha-plugin-flywirepayments/releases) you can download the relevant *.kpz file
 
 # Installing
 
@@ -25,12 +25,12 @@ The plugin now uses Koha's REST API for payment callbacks, eliminating the need 
 
 ## API Endpoint
 
-The WPM callback endpoint is now available at:
+The Flywire callback endpoint is now available at:
 ```
-/api/v1/contrib/wpmpayments/callback
+/api/v1/contrib/flywirepayments/callback
 ```
 
-This endpoint accepts POST requests with XML payloads from the WPM payment system.
+This endpoint accepts POST requests with XML payloads from the Flywire payment system.
 
 ## Legacy Setup (Deprecated)
 
