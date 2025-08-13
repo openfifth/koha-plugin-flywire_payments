@@ -12,6 +12,21 @@ use C4::Auth qw( get_template_and_user );
 use Koha::Account;
 use Koha::Account::Lines;
 use Koha::Patrons;
+use Koha::Database;
+
+BEGIN {
+    my $path = Module::Metadata->find_module_by_name(__PACKAGE__);
+    $path =~ s{[.]pm$}{/lib}xms;
+    unshift @INC, $path;
+
+    require Koha::WPMPayments::Transactions;
+    require Koha::Schema::Result::KohaPluginComPtfseuropeWpmpaymentWpmTransaction;
+    Koha::Schema->register_class(
+        KohaPluginComPtfseuropeWpmpaymentWpmTransaction => 'Koha::Schema::Result::KohaPluginComPtfseuropeWpmpaymentWpmTransaction'
+    );
+
+    Koha::Database->schema({ new => 1 });
+}
 
 use Email::Address;
 use XML::LibXML;
@@ -19,6 +34,7 @@ use DateTime;
 use Digest::MD5 qw(md5_hex);
 use HTML::Entities;
 use JSON qw(decode_json);
+use Module::Metadata;
 
 ## Here we set our plugin version
 our $VERSION = "00.00.12";
@@ -99,14 +115,11 @@ sub opac_online_payment_begin {
     # Get the borrower
     my $borrower_result = Koha::Patrons->find($borrowernumber);
 
-    # Create a transaction
-    my $dbh   = C4::Context->dbh;
-    my $table = $self->get_qualified_table_name('wpm_transactions');
-    my $sth = $dbh->prepare("INSERT INTO $table (`accountline_id`) VALUES (?)");
-    $sth->execute(undef);
-
-    my $transaction_id =
-      $dbh->last_insert_id( undef, undef, qw(wpm_transactions transaction_id) );
+    # Create a transaction using object-oriented approach
+    my $transaction = Koha::WPMPayments::Transaction->new({
+        accountline_id => undef
+    })->store();
+    my $transaction_id = $transaction->transaction_id;
 
     # Construct redirect URI
     my $redirect_url = URI->new( C4::Context->preference('OPACBaseURL')
@@ -454,13 +467,9 @@ sub opac_online_payment_end {
 
     my $transaction_id = $cgi->param('transaction_id');
 
-    # Check payment went through here
-    my $table = $self->get_qualified_table_name('wpm_transactions');
-    my $dbh   = C4::Context->dbh;
-    my $sth   = $dbh->prepare(
-        "SELECT accountline_id FROM $table WHERE transaction_id = ?");
-    $sth->execute($transaction_id);
-    my ($accountline_id) = $sth->fetchrow_array();
+    # Check payment went through here using object-oriented approach
+    my $transaction = Koha::WPMPayments::Transactions->find($transaction_id);
+    my $accountline_id = $transaction ? $transaction->accountline_id : undef;
 
     my $line =
       Koha::Account::Lines->find( { accountlines_id => $accountline_id } );
