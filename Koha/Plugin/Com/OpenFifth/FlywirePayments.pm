@@ -134,7 +134,7 @@ sub opac_online_payment_begin {
     # Construct callback URI
     my $callback_url =
       URI->new( C4::Context->preference('OPACBaseURL')
-          . "/api/v1/contrib/flywirepayments/callback" );
+          . "/api/v1/contrib/" . $self->api_namespace . "/callback" );
 
     # Construct cancel URI
     my $cancel_url = URI->new( C4::Context->preference('OPACBaseURL')
