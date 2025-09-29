@@ -32,7 +32,7 @@
                         Momentarily you will be redirected to the WPM payment portal.
                     </p>
                 
-                    <form id="wpmform" method="post" action="[% WPMPathway %]">
+                    <form id="wpmform" method="post" action="[% FlywirePathway %]">
                         <input id="wpm_xml" type="hidden" name="xml" value='[% XMLPost | xml %]'/>
                     </form>
                 </div>
