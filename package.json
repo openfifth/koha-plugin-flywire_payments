@@ -1,21 +1,16 @@
 {
-  "name": "koha-plugin-wpm-payments",
-  "version": "1.0.0",
-  "description": "",
-  "main": "checkVersionNumber.js",
+  "plugin": {
+    "module": "Koha::Plugin::Com::OpenFifth::FlywirePayments",
+    "pm_path": "Koha/Plugin/Com/OpenFifth/FlywirePayments.pm"
+  },
+  "version": "0.1.0",
+  "previous_version": "0.1.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "release": "bash ./release_kpz.sh"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/PTFS-Europe/koha-plugin-wpm-payments.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/PTFS-Europe/koha-plugin-wpm-payments/issues"
-  },
-  "homepage": "https://github.com/PTFS-Europe/koha-plugin-wpm-payments#readme"
+    "version:patch": "node increment_version.js patch | cat",
+    "version:minor": "node increment_version.js minor | cat",
+    "version:major": "node increment_version.js major | cat",
+    "release:patch": "node increment_version.js patch | cat && git add . && git commit -m 'chore: bump version' && VERSION=$(node -p 'require(\"./package.json\").version') && git tag -a v$VERSION -m \"Release v$VERSION\" && git push --follow-tags",
+    "release:minor": "node increment_version.js minor | cat && git add . && git commit -m 'chore: bump version' && VERSION=$(node -p 'require(\"./package.json\").version') && git tag -a v$VERSION -m \"Release v$VERSION\" && git push --follow-tags",
+    "release:major": "node increment_version.js major | cat && git add . && git commit -m 'chore: bump version' && VERSION=$(node -p 'require(\"./package.json\").version') && git tag -a v$VERSION -m \"Release v$VERSION\" && git push --follow-tags"
+  }
 }
