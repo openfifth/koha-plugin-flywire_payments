@@ -37,7 +37,7 @@ use JSON qw(decode_json);
 use Module::Metadata;
 
 ## Here we set our plugin version
-our $VERSION = '0.2.2';
+our $VERSION = '0.2.3';
 our $debug   = 0;
 
 ## Here is our metadata, some keys are required, some are optional
