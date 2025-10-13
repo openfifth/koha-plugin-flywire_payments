@@ -609,15 +609,119 @@ sub install() {
 
 ## This is the 'upgrade' method. It will be triggered when a newer version of a
 ## plugin is installed over an existing older version of a plugin
-#sub upgrade {
-#    my ( $self, $args ) = @_;
-#
-#    my $dt = dt_from_string();
-#    $self->store_data(
-#        { last_upgraded => $dt->ymd('-') . ' ' . $dt->hms(':') } );
-#
-#    return 1;
-#}
+sub upgrade {
+    my ( $self, $args ) = @_;
+
+    my $dbh = C4::Context->dbh;
+    my $dt = DateTime->now;
+
+    # Check if we need to migrate from the old plugin
+    # (PTFSEurope/WPMPayments to OpenFifth/FlywirePayments)
+    my $old_plugin_class = 'Koha::Plugin::Com::PTFSEurope::WPMPayments';
+
+    # Check if old plugin data exists
+    my $old_data_check = $dbh->selectrow_array(
+        "SELECT COUNT(*) FROM plugin_data WHERE plugin_class = ?",
+        undef, $old_plugin_class
+    );
+
+    if ($old_data_check && $old_data_check > 0) {
+        warn "Migrating configuration from old plugin: $old_plugin_class";
+
+        # Retrieve all old plugin data
+        my $old_data = $dbh->selectall_arrayref(
+            "SELECT plugin_key, plugin_value FROM plugin_data WHERE plugin_class = ?",
+            { Slice => {} }, $old_plugin_class
+        );
+
+        # Map old config keys to new config keys
+        my %key_mapping = (
+            'WPMClientID'      => 'FlywireClientID',
+            'WPMSecret'        => 'FlywireSecret',
+            'WPMPathway'       => 'FlywirePathway',
+            'WPMPathwayID'     => 'FlywirePathwayID',
+            'WPMDepartmentID'  => 'FlywireDepartmentID',
+        );
+
+        # Migrate configuration data
+        my %new_config;
+        foreach my $row (@$old_data) {
+            my $old_key = $row->{plugin_key};
+            my $value = $row->{plugin_value};
+
+            # Map old key to new key if mapping exists, otherwise keep same
+            my $new_key = $key_mapping{$old_key} // $old_key;
+            $new_config{$new_key} = $value;
+        }
+
+        # Store migrated configuration in new plugin
+        if (%new_config) {
+            $self->store_data(\%new_config);
+            warn "Successfully migrated " . scalar(keys %new_config) . " configuration items";
+        }
+
+        # Migrate transaction data from old table to new table
+        my $old_table = 'koha_plugin_com_ptfseurope_wpmpayments_wpm_transactions';
+        my $new_table = $self->get_qualified_table_name('flywire_transactions');
+
+        # Check if old table exists
+        my $old_table_exists = $dbh->selectrow_array(
+            "SELECT COUNT(*) FROM information_schema.tables
+             WHERE table_schema = DATABASE() AND table_name = ?",
+            undef, $old_table
+        );
+
+        if ($old_table_exists) {
+            # Check if old table has data
+            my $old_data_count = $dbh->selectrow_array(
+                "SELECT COUNT(*) FROM $old_table"
+            );
+
+            if ($old_data_count && $old_data_count > 0) {
+                warn "Migrating $old_data_count transaction records from old table";
+
+                # Copy data from old table to new table
+                # Avoid duplicates by checking if transaction_id already exists
+                $dbh->do("
+                    INSERT INTO $new_table (transaction_id, accountline_id, updated)
+                    SELECT o.transaction_id, o.accountline_id, o.updated
+                    FROM $old_table o
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM $new_table n
+                        WHERE n.transaction_id = o.transaction_id
+                    )
+                ");
+
+                warn "Successfully migrated transaction records";
+            }
+
+            # Drop old table after successful migration
+            $dbh->do("DROP TABLE IF EXISTS $old_table");
+            warn "Dropped old transaction table: $old_table";
+        }
+
+        # Remove old plugin from plugin_methods table
+        $dbh->do(
+            "DELETE FROM plugin_methods WHERE plugin_class = ?",
+            undef, $old_plugin_class
+        );
+        warn "Removed old plugin methods for: $old_plugin_class";
+
+        # Remove old plugin from plugin_data table
+        $dbh->do(
+            "DELETE FROM plugin_data WHERE plugin_class = ?",
+            undef, $old_plugin_class
+        );
+        warn "Removed old plugin data for: $old_plugin_class";
+
+        warn "Migration from old plugin complete";
+    }
+
+    $self->store_data(
+        { last_upgraded => $dt->ymd('-') . ' ' . $dt->hms(':') } );
+
+    return 1;
+}
 
 ## This method will be run just before the plugin files are deleted
 ## when a plugin is uninstalled. It is good practice to clean up
