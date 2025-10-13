@@ -3,8 +3,8 @@
     "module": "Koha::Plugin::Com::OpenFifth::FlywirePayments",
     "pm_path": "Koha/Plugin/Com/OpenFifth/FlywirePayments.pm"
   },
-  "version": "0.2.3",
-  "previous_version": "0.2.2",
+  "version": "0.2.4",
+  "previous_version": "0.2.3",
   "scripts": {
     "version:patch": "node increment_version.js patch | cat",
     "version:minor": "node increment_version.js minor | cat",

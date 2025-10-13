@@ -37,7 +37,7 @@ use JSON qw(decode_json);
 use Module::Metadata;
 
 ## Here we set our plugin version
-our $VERSION = '0.2.3';
+our $VERSION = '0.2.4';
 our $debug   = 0;
 
 ## Here is our metadata, some keys are required, some are optional
@@ -45,7 +45,7 @@ our $metadata = {
     name            => 'Flywire Online Payments Plugin',
     author          => 'Martin Renvoize',
     date_authored   => '2018-06-13',
-    date_updated    => '2025-09-29',
+    date_updated    => '2025-10-13',
     minimum_version => '23.11.00.000',
     maximum_version => '',
     version         => $VERSION,
