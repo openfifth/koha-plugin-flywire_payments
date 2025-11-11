@@ -152,7 +152,7 @@ sub opac_online_payment_begin {
 
     # Construct XML POST
     my $xml  = XML::LibXML::Document->new( '1.0', 'utf-8' );
-    my $root = $xml->createElement('flywire_paymentrequest');
+    my $root = $xml->createElement('wpmpaymentrequest');
 
     # Email handling
     my @addrs = Email::Address->parse(C4::Context->preference('KohaAdminEmailAddress'));

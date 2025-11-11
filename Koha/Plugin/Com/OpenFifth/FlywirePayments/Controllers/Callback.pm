@@ -86,11 +86,11 @@ sub _parse_payment_request {
     };
 
     return {
-        borrowernumber => $payment_request_xml->findvalue('/flywire_paymentrequest/customerid'),
-        transaction_id => $payment_request_xml->findvalue('/flywire_paymentrequest/transactionreference'),
-        payment_succeeded => $payment_request_xml->findvalue('/flywire_paymentrequest/transaction/success') eq '1',
-        total_amount => $payment_request_xml->findvalue('/flywire_paymentrequest/transaction/totalpaid'),
-        message_id => $payment_request_xml->findvalue('/flywire_paymentrequest/@msgid'),
+        borrowernumber => $payment_request_xml->findvalue('/wpmpaymentrequest/customerid'),
+        transaction_id => $payment_request_xml->findvalue('/wpmpaymentrequest/transactionreference'),
+        payment_succeeded => $payment_request_xml->findvalue('/wpmpaymentrequest/transaction/success') eq '1',
+        total_amount => $payment_request_xml->findvalue('/wpmpaymentrequest/transaction/totalpaid'),
+        message_id => $payment_request_xml->findvalue('/wpmpaymentrequest/@msgid'),
         xml_document => $payment_request_xml,
     };
 }
@@ -149,8 +149,8 @@ sub _extract_accountlines_from_request {
     my ($c, $xml_document) = @_;
     
     my @accountline_ids_to_pay = ();
-    my $payment_nodes = $xml_document->findnodes('/flywire_paymentrequest/payments/payment[@paid="1"]');
-    
+    my $payment_nodes = $xml_document->findnodes('/wpmpaymentrequest/payments/payment[@paid="1"]');
+
     for my $payment_node ($payment_nodes->get_nodelist) {
         my $accountline_id = $payment_node->findvalue('./@payid');
         push @accountline_ids_to_pay, $accountline_id if $accountline_id;
@@ -286,7 +286,7 @@ sub _build_flywire_acknowledgment {
     my ($c, $original_message_id) = @_;
     
     my $acknowledgment_xml = XML::LibXML::Document->new('1.0', 'utf-8');
-    my $response_root = $acknowledgment_xml->createElement("flywire_messagevalidation");
+    my $response_root = $acknowledgment_xml->createElement("wpmmessagevalidation");
     $response_root->setAttribute('msgid' => $original_message_id);
 
     my $validation_element = $acknowledgment_xml->createElement('validation');
