@@ -10,20 +10,9 @@
         "application/xml"
       ],
       "consumes": [
-        "application/xml"
+        "*/*"
       ],
-      "parameters": [
-        {
-          "name": "body",
-          "in": "body",
-          "required": true,
-          "description": "Flywire payment callback XML data",
-          "schema": {
-            "type": "string",
-            "format": "xml"
-          }
-        }
-      ],
+      "parameters": [],
       "responses": {
         "200": {
           "description": "Payment processed successfully",
