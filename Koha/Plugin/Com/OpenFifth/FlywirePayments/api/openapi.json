@@ -1,0 +1,119 @@
+{
+  "/callback": {
+    "post": {
+      "x-mojo-to": "Com::OpenFifth::FlywirePayments::Controllers::Callback#process",
+      "operationId": "processFlywireCallback",
+      "tags": [
+        "payments"
+      ],
+      "summary": "Process Flywire payment status callback",
+      "description": "Receives payment status notifications from Flywire Pay-by-Link API. Callbacks are sent at various stages: initiated, processed, guaranteed, delivered, failed, cancelled, reversed.",
+      "produces": [
+        "application/json"
+      ],
+      "consumes": [
+        "application/json"
+      ],
+      "parameters": [
+        {
+          "name": "X-Flywire-Digest",
+          "in": "header",
+          "required": false,
+          "description": "HMAC-SHA256 signature for callback validation",
+          "type": "string"
+        },
+        {
+          "name": "body",
+          "in": "body",
+          "required": true,
+          "description": "Flywire payment status callback JSON data",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "event_type": {
+                "type": "string",
+                "description": "Type of event (initiated, processed, guaranteed, delivered, failed, cancelled, reversed)"
+              },
+              "event_date": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Timestamp of the event"
+              },
+              "event_resource": {
+                "type": "string",
+                "description": "Resource type (payments, charges)"
+              },
+              "data": {
+                "type": "object",
+                "properties": {
+                  "payment_id": {
+                    "type": "string",
+                    "description": "Flywire payment reference"
+                  },
+                  "external_reference": {
+                    "type": "string",
+                    "description": "Our transaction_id (sent as callback_id in request)"
+                  },
+                  "amount_from": {
+                    "type": "string",
+                    "description": "Amount in payer currency (subunits)"
+                  },
+                  "currency_from": {
+                    "type": "string",
+                    "description": "Payer currency code"
+                  },
+                  "amount_to": {
+                    "type": "string",
+                    "description": "Amount in billing currency (subunits/pence)"
+                  },
+                  "currency_to": {
+                    "type": "string",
+                    "description": "Billing currency code"
+                  },
+                  "status": {
+                    "type": "string",
+                    "description": "Payment status"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Callback processed successfully",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "success": {
+                "type": "boolean"
+              },
+              "message": {
+                "type": "string"
+              },
+              "transaction_id": {
+                "type": "integer"
+              },
+              "status": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "400": {
+          "description": "Invalid request"
+        },
+        "401": {
+          "description": "Invalid signature"
+        },
+        "404": {
+          "description": "Transaction not found"
+        },
+        "500": {
+          "description": "Internal server error"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+[% USE Koha %]
+[% USE KohaDates %]
+
+[% INCLUDE 'doc-head-open.inc' %]
+<title>[% IF ( LibraryNameTitle ) %][% LibraryNameTitle %][% ELSE %]Koha online[% END %] catalog &rsaquo; Payment Result</title>
+[% INCLUDE 'doc-head-close.inc' %]
+[% BLOCK cssinclude %][% END %]
+</head>
+[% INCLUDE 'bodytag.inc' bodyid='opac-account' bodyclass='scrollto' %]
+[% INCLUDE 'masthead.inc' %]
+
+<div class="main">
+    <nav id="breadcrumbs" aria-label="Breadcrumb" class="breadcrumbs">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/cgi-bin/koha/opac-main.pl">Home</a></li>
+            <li class="breadcrumb-item"><a href="/cgi-bin/koha/opac-user.pl">[% borrower.firstname %] [% borrower.surname %]</a></li>
+            <li class="breadcrumb-item active"><a href="#">Payment Result</a></li>
+        </ol>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col col-lg-2 order-2 order-lg-1">
+                <div id="navigation">
+                    [% INCLUDE 'navigation.inc' IsPatronPage=1 %]
+                </div>
+            </div>
+
+            <div class="col-md-12 col-lg-10 order-1 order-lg-2">
+                <div id="useraccount" class="maincontent">
+                    [% IF message == 'valid_payment' %]
+                        <div class="alert alert-success">
+                            <h4><i class="fa fa-check-circle"></i> Payment Successful</h4>
+                            <p>Thank you! Your payment of <strong>&pound;[% message_value %]</strong> has been received.</p>
+                            [% IF status == 'guaranteed' %]
+                                <p>Your payment has been confirmed and will be processed shortly.</p>
+                            [% ELSIF status == 'delivered' %]
+                                <p>Your payment has been fully processed.</p>
+                            [% END %]
+                            <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                        </div>
+                    [% ELSIF message == 'payment_pending' %]
+                        <div class="alert alert-warning">
+                            <h4><i class="fa fa-clock-o"></i> Payment Processing</h4>
+                            <p>Your payment is being processed. This may take a few moments.</p>
+                            <p>Current status: <strong>[% status %]</strong></p>
+                            <p>Please check your account again shortly to see the updated balance.</p>
+                            <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                        </div>
+                    [% ELSIF message == 'payment_failed' %]
+                        <div class="alert alert-danger">
+                            <h4><i class="fa fa-times-circle"></i> Payment Not Completed</h4>
+                            <p>Unfortunately, your payment was not completed.</p>
+                            [% IF status %]
+                                <p>Status: <strong>[% status %]</strong></p>
+                            [% END %]
+                            <p>If you cancelled the payment intentionally, you can try again when you're ready.</p>
+                            <p>If you believe this is an error, please contact the library for assistance.</p>
+                            <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                        </div>
+                    [% ELSIF message == 'no_transaction' %]
+                        <div class="alert alert-warning">
+                            <h4><i class="fa fa-question-circle"></i> Transaction Not Found</h4>
+                            <p>We could not find information about this payment transaction.</p>
+                            <p>Please check your account to see if the payment was applied.</p>
+                            <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                        </div>
+                    [% ELSE %]
+                        <div class="alert alert-info">
+                            <h4>Payment Status</h4>
+                            <p>Please check your account for the current status of your payment.</p>
+                            <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                        </div>
+                    [% END %]
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+[% BLOCK jsinclude %][% END %]
+
+[% INCLUDE 'opac-bottom.inc' %]

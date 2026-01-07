@@ -1,0 +1,48 @@
+[% USE Koha %]
+[% USE KohaDates %]
+
+[% INCLUDE 'doc-head-open.inc' %]
+<title>[% IF ( LibraryNameTitle ) %][% LibraryNameTitle %][% ELSE %]Koha online[% END %] catalog &rsaquo; Payment Error</title>
+[% INCLUDE 'doc-head-close.inc' %]
+[% BLOCK cssinclude %][% END %]
+</head>
+[% INCLUDE 'bodytag.inc' bodyid='opac-account' bodyclass='scrollto' %]
+[% INCLUDE 'masthead.inc' %]
+
+<div class="main">
+    <nav id="breadcrumbs" aria-label="Breadcrumb" class="breadcrumbs">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/cgi-bin/koha/opac-main.pl">Home</a></li>
+            <li class="breadcrumb-item"><a href="/cgi-bin/koha/opac-user.pl">[% borrower.firstname %] [% borrower.surname %]</a></li>
+            <li class="breadcrumb-item active"><a href="#">Payment Error</a></li>
+        </ol>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col col-lg-2 order-2 order-lg-1">
+                <div id="navigation">
+                    [% INCLUDE 'navigation.inc' IsPatronPage=1 %]
+                </div>
+            </div>
+
+            <div class="col-md-12 col-lg-10 order-1 order-lg-2">
+                <div id="useraccount" class="maincontent">
+                    <div class="alert alert-danger">
+                        <h4><i class="fa fa-exclamation-triangle"></i> Payment Error</h4>
+                        <p>An error occurred while processing your payment.</p>
+                        [% IF error_message %]
+                            <p><strong>Error:</strong> [% error_message %]</p>
+                        [% END %]
+                        <p>Please try again or contact the library for assistance.</p>
+                        <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+[% BLOCK jsinclude %][% END %]
+
+[% INCLUDE 'opac-bottom.inc' %]

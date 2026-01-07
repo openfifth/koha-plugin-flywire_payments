@@ -1,0 +1,74 @@
+[% USE Koha %]
+[% USE KohaDates %]
+
+[% INCLUDE 'doc-head-open.inc' %]
+<title>[% IF ( LibraryNameTitle ) %][% LibraryNameTitle %][% ELSE %]Koha online[% END %] catalog &rsaquo; Pay your fines and charges</title>
+[% INCLUDE 'doc-head-close.inc' %]
+[% BLOCK cssinclude %][% END %]
+</head>
+[% INCLUDE 'bodytag.inc' bodyid='opac-account' bodyclass='scrollto' %]
+[% INCLUDE 'masthead.inc' %]
+
+<div class="main">
+    <nav id="breadcrumbs" aria-label="Breadcrumb" class="breadcrumbs">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/cgi-bin/koha/opac-main.pl">Home</a></li>
+            <li class="breadcrumb-item"><a href="/cgi-bin/koha/opac-user.pl">[% borrower.firstname %] [% borrower.surname %]</a></li>
+            <li class="breadcrumb-item active"><a href="#">Pay your fines and charges</a></li>
+        </ol>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col col-lg-2 order-2 order-lg-1">
+                <div id="navigation">
+                    [% INCLUDE 'navigation.inc' IsPatronPage=1 %]
+                </div>
+            </div>
+
+            <div class="col-md-12 col-lg-10 order-1 order-lg-2">
+                <div id="useraccount" class="maincontent">
+                    [% IF error %]
+                        <div class="alert alert-danger">
+                            <h4>Payment Error</h4>
+                            <p>Sorry, we were unable to create your payment link.</p>
+                            <p><strong>Error:</strong> [% error_message %]</p>
+                            [% IF error_details %]
+                                <p><strong>Details:</strong> [% error_details %]</p>
+                            [% END %]
+                            <p><a href="/cgi-bin/koha/opac-account.pl" class="btn btn-primary">Return to your account</a></p>
+                        </div>
+                    [% ELSE %]
+                        <div class="alert alert-info">
+                            <h4>Redirecting to Payment Portal</h4>
+                            <p>You are being redirected to the Flywire payment portal to complete your payment of <strong>&pound;[% amount %]</strong>.</p>
+                            <p>Please wait...</p>
+                            <p>If you are not redirected automatically, <a href="[% payment_url %]" id="payment-link">click here to proceed to payment</a>.</p>
+                        </div>
+                        
+                        <noscript>
+                            <div class="alert alert-warning">
+                                <p>JavaScript is disabled. Please <a href="[% payment_url %]">click here to proceed to payment</a>.</p>
+                            </div>
+                        </noscript>
+                    [% END %]
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+[% BLOCK jsinclude %][% END %]
+
+[% INCLUDE 'opac-bottom.inc' %]
+
+[% UNLESS error %]
+<script>
+$(document).ready(function() {
+    // Redirect to payment URL after a short delay
+    setTimeout(function() {
+        window.location.href = '[% payment_url %]';
+    }, 1500);
+});
+</script>
+[% END %]

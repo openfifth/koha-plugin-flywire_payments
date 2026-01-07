@@ -1,0 +1,116 @@
+[% INCLUDE 'doc-head-open.inc' %]
+ <title>Koha: Flywire Pay-by-Link Payments: Configuration</title>
+[% INCLUDE 'doc-head-close.inc' %]
+</head>
+<body>
+[% INCLUDE 'header.inc' %]
+[% INCLUDE 'cat-search.inc' %]
+
+<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Flywire Pay-by-Link Payments &rsaquo; Configuration</div>
+
+<div class="main container-fluid">
+    <div class="row">
+
+        <div class="col-sm-10 col-sm-push-2">
+            <main>
+
+                <h1>Koha: Flywire Pay-by-Link Payments: Configuration</h1>
+            
+                <form method="get">
+                    <!-- Always pass these two parameters so the plugin system knows what to execute! -->
+                    <input type="hidden" name="class" value="[% CLASS %]"/>
+                    <input type="hidden" name="method" value="[% METHOD %]"/>
+
+                    <fieldset class="rows">
+                        <legend>Global Settings</legend>
+
+                        <ol>
+                            <li>
+                                <label for="enable_opac_payments">Enable OPAC Account Payments: </label>
+                                <select name="enable_opac_payments">
+                                    [% IF enable_opac_payments == 'No' %]
+                                    <option value="No" selected="selected">No</option>
+                                    [% ELSE %]
+                                    <option value="No">No</option>
+                                    [% END %]
+
+                                    [% IF enable_opac_payments == 'Yes' %]
+                                    <option value="Yes" selected="selected">Yes</option>
+                                    [% ELSE %]
+                                    <option value="Yes">Yes</option>
+                                    [% END %]
+                                </select>
+                            </li>
+                        </ol>
+                    </fieldset>
+            
+                    <fieldset class="rows">
+                        <legend>Flywire API Settings</legend>
+                        <p>These settings are provided by Flywire when your portal is set up.</p>
+                        <ol>
+                            <li>
+                                <label for="FlywireProvider">Provider (Portal Code): </label>
+                                <input type="text" name="FlywireProvider" value="[% FlywireProvider %]" />
+                                <span class="hint">The recipient/portal ID (e.g., "koha")</span>
+                            </li>
+
+                            <li>
+                                <label for="FlywirePaymentDestination">Payment Destination (Subdomain): </label>
+                                <input type="text" name="FlywirePaymentDestination" value="[% FlywirePaymentDestination %]" />
+                                <span class="hint">Your unique subdomain (e.g., "kohademo")</span>
+                            </li>
+
+                            <li>
+                                <label for="FlywireSharedSecret">Shared Secret: </label>
+                                <input type="password" name="FlywireSharedSecret" value="[% FlywireSharedSecret %]" />
+                                <span class="hint">Used for HMAC-SHA256 authentication and callback validation</span>
+                            </li>
+
+                            <li>
+                                <label for="FlywireEnvironment">Environment: </label>
+                                <select name="FlywireEnvironment">
+                                    [% IF FlywireEnvironment == 'demo' %]
+                                    <option value="demo" selected="selected">Demo (Testing)</option>
+                                    [% ELSE %]
+                                    <option value="demo">Demo (Testing)</option>
+                                    [% END %]
+
+                                    [% IF FlywireEnvironment == 'production' %]
+                                    <option value="production" selected="selected">Production (Live)</option>
+                                    [% ELSE %]
+                                    <option value="production">Production (Live)</option>
+                                    [% END %]
+                                </select>
+                                <span class="hint">Use Demo for testing, Production for live payments</span>
+                            </li>
+                        </ol>
+                    </fieldset>
+
+                    <fieldset class="rows">
+                        <legend>API Endpoints</legend>
+                        <p><strong>Demo:</strong> https://gateway.demo.flywire.com/v1/transfers.json</p>
+                        <p><strong>Production:</strong> https://gateway.flywire.com/v1/transfers.json</p>
+                        <p><strong>Callback URL:</strong> [% OPACBaseURL %]/api/v1/contrib/flywirepayments/callback</p>
+                    </fieldset>
+            
+                    <fieldset class="action">
+                        <input type="hidden" name="save" value="1" />
+                        <input type="submit" value="Save configuration" />
+                        <a class="cancel" href="/cgi-bin/koha/plugins/plugins-home.pl">Cancel</a>
+                    </fieldset>
+                </form>
+            </main>
+        </div>
+        
+        <div class="col-sm-2 col-sm-pull-10">
+            <aside>
+                <img src="https://www.flywire.com/hubfs/flywire-logo.svg" alt="Flywire" style="max-width: 150px;" />
+                <h4>About</h4>
+                <p>This plugin uses the Flywire Pay-by-Link API for secure online payments.</p>
+                <p><a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank">API Documentation</a></p>
+            </aside>
+        </div>
+
+    </div>
+
+[% INCLUDE 'intranet-bottom.inc' %]

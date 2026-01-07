@@ -1,0 +1,8 @@
+.opencode/
+opencode.json
+.claude/
+CLAUDE.md
+*.kpz
+*.zip
+node_modules/
+.DS_Store
