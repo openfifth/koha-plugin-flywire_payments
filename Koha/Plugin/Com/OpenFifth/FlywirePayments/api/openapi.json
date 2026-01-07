@@ -1,4 +1,40 @@
 {
+  "/pending": {
+    "get": {
+      "x-mojo-to": "Com::OpenFifth::FlywirePayments::Controllers::Pending#get_current_user",
+      "operationId": "getPendingPaymentsCurrentUser",
+      "tags": [
+        "payments"
+      ],
+      "summary": "Get pending payment accountlines for the current logged-in user",
+      "description": "Returns accountline IDs that have pending Flywire payments in progress for the authenticated user.",
+      "produces": [
+        "application/json"
+      ],
+      "responses": {
+        "200": {
+          "description": "List of pending accountline IDs",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "pending_accountline_ids": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "description": "Not authenticated"
+        },
+        "500": {
+          "description": "Internal server error"
+        }
+      }
+    }
+  },
   "/callback": {
     "post": {
       "x-mojo-to": "Com::OpenFifth::FlywirePayments::Controllers::Callback#process",

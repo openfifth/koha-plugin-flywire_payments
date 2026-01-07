@@ -364,14 +364,63 @@ sub opac_online_payment_end {
     print $template->output();
 }
 
-## If your plugin needs to add some javascript in the OPAC, you'll want
-## to return that javascript here.
 sub opac_js {
     my ($self) = @_;
 
-    return q|
-        <script></script>
-    |;
+    return <<'END_JS';
+        <script>
+        $(document).ready(function() {
+            if (!window.location.pathname.match(/opac-account(-pay)?\.pl/)) {
+                return;
+            }
+
+            var pendingIds = [];
+
+            function markPendingPayments() {
+                if (pendingIds.length === 0) {
+                    return;
+                }
+
+                pendingIds.forEach(function(accountlineId) {
+                    var $checkbox = $('#checkbox-pay-' + accountlineId);
+                    if ($checkbox.length && !$checkbox.data('flywire-marked')) {
+                        $checkbox.prop('disabled', true);
+                        $checkbox.prop('checked', false);
+                        $checkbox.data('flywire-marked', true);
+                        
+                        var $row = $checkbox.closest('tr');
+                        $row.addClass('flywire-payment-pending');
+                        $row.css('opacity', '0.6');
+                        
+                        var $descCell = $row.find('td').eq(4);
+                        if ($descCell.length && $descCell.find('.flywire-pending-badge').length === 0) {
+                            $descCell.append(' <span class="flywire-pending-badge badge" style="background-color: #f0ad4e; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.85em; margin-left: 5px;">Payment in progress</span>');
+                        }
+                    }
+                });
+            }
+
+            $.ajax({
+                url: '/api/v1/contrib/flywirepayments/pending',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    pendingIds = response.pending_accountline_ids || [];
+                    markPendingPayments();
+                    
+                    if (typeof $.fn.DataTable !== 'undefined') {
+                        $('#finestable').on('draw.dt', function() {
+                            markPendingPayments();
+                        });
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log('FlywirePayments: Could not fetch pending payments', error);
+                }
+            });
+        });
+        </script>
+END_JS
 }
 
 ## Configuration page
