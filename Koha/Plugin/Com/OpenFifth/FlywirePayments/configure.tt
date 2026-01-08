@@ -126,10 +126,11 @@
         
         <div class="col-sm-2 col-sm-pull-10">
             <aside>
-                <img src="https://www.flywire.com/hubfs/flywire-logo.svg" alt="Flywire" style="max-width: 150px;" />
+                <p><img src="https://cdn.brandfetch.io/idmEP5YTRJ/w/243/h/52/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1767881495417" alt="Open Fifth" style="max-width: 300px;" /></p>
                 <h4>About</h4>
-                <p>This plugin uses the Flywire Pay-by-Link API for secure online payments.</p>
-                <p><a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank">API Documentation</a></p>
+                <p>This plugin is developed by <a href="https://openfifth.co.uk" target="_blank">Open Fifth</a> and integrates with the Flywire payment portal.</p>
+                <p style="margin-top: 15px;"><img src="https://cdn.brandfetch.io/id1L6oKjVX/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667924686641" alt="Flywire" style="max-width: 100px;" /></p>
+                <p><a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank">Flywire API Documentation</a></p>
             </aside>
         </div>
 
