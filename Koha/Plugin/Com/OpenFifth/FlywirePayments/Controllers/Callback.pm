@@ -55,13 +55,15 @@ Process the Flywire payment status callback
 sub process {
     my $c = shift->openapi->valid_input or return;
 
-    warn "[FlywirePayments] Callback received";
+    my $flywire_plugin = Koha::Plugin::Com::OpenFifth::FlywirePayments->new;
+    my $debug = $flywire_plugin->_is_debug_mode;
+
+    $debug and warn "[FlywirePayments] Callback received";
 
     return try {
-        my $flywire_plugin = Koha::Plugin::Com::OpenFifth::FlywirePayments->new;
         my $callback_body = $c->req->body;
 
-        warn "[FlywirePayments] Raw callback body: $callback_body";
+        $debug and warn "[FlywirePayments] Raw callback body: $callback_body";
 
         # Validate signature if X-Flywire-Digest header is present
         my $received_digest = $c->req->headers->header('X-Flywire-Digest');
@@ -73,7 +75,7 @@ sub process {
                     openapi => { error => 'Invalid signature' }
                 );
             }
-            warn "[FlywirePayments] Callback signature validated";
+            $debug and warn "[FlywirePayments] Callback signature validated";
         }
 
         # Parse JSON callback
@@ -92,14 +94,14 @@ sub process {
         my $event_resource = $callback_data->{event_resource};
         my $data = $callback_data->{data} || {};
 
-        warn "[FlywirePayments] Event type: $event_type, Resource: $event_resource";
+        $debug and warn "[FlywirePayments] Event type: $event_type, Resource: $event_resource";
 
         my $payment_id = $data->{payment_id};
         my $external_reference = $data->{external_reference};  # Our transaction_id
         my $amount_to = $data->{amount_to};
         my $status = $data->{status} || $event_type;
 
-        warn "[FlywirePayments] Payment ID: " . ($payment_id // 'undef')
+        $debug and warn "[FlywirePayments] Payment ID: " . ($payment_id // 'undef')
            . ", External Reference: " . ($external_reference // 'undef')
            . ", Amount: " . ($amount_to // 'undef')
            . ", Status: " . ($status // 'undef');
@@ -127,7 +129,7 @@ sub process {
             );
         }
 
-        warn "[FlywirePayments] Found transaction: " . $transaction->transaction_id;
+        $debug and warn "[FlywirePayments] Found transaction: " . $transaction->transaction_id;
 
         # Update transaction with callback data
         $transaction->status($status);
@@ -138,31 +140,31 @@ sub process {
         # Process based on event type
         if ($event_type eq 'guaranteed') {
             if ($transaction->accountline_id) {
-                warn "[FlywirePayments] Payment already applied for transaction " . $transaction->transaction_id . " - skipping";
+                $debug and warn "[FlywirePayments] Payment already applied for transaction " . $transaction->transaction_id . " - skipping";
             } else {
-                warn "[FlywirePayments] Processing GUARANTEED callback - applying payment";
+                $debug and warn "[FlywirePayments] Processing GUARANTEED callback - applying payment";
                 $c->_apply_payment($transaction, $data, $flywire_plugin);
             }
         }
         elsif ($event_type eq 'delivered') {
-            warn "[FlywirePayments] Processing DELIVERED callback";
+            $debug and warn "[FlywirePayments] Processing DELIVERED callback";
             # Payment already applied on guaranteed, just log
-            $c->_log_delivered($transaction, $data);
+            $c->_log_delivered($transaction, $data, $flywire_plugin);
         }
         elsif ($event_type eq 'cancelled' || $event_type eq 'failed') {
-            warn "[FlywirePayments] Processing $event_type callback";
+            $debug and warn "[FlywirePayments] Processing $event_type callback";
             # Payment cancelled or failed - update status only
             $transaction->status($event_type);
             $transaction->store();
         }
         elsif ($event_type eq 'reversed') {
-            warn "[FlywirePayments] Processing REVERSED callback - payment refunded";
+            $debug and warn "[FlywirePayments] Processing REVERSED callback - payment refunded";
             # TODO: Handle refund if needed
             $transaction->status('reversed');
             $transaction->store();
         }
         else {
-            warn "[FlywirePayments] Ignoring event type: $event_type";
+            $debug and warn "[FlywirePayments] Ignoring event type: $event_type";
         }
 
         # Return success acknowledgment
@@ -193,11 +195,12 @@ Apply payment to patron account when guaranteed callback is received
 sub _apply_payment {
     my ($c, $transaction, $callback_data, $flywire_plugin) = @_;
 
+    my $debug = $flywire_plugin->_is_debug_mode;
     my $borrowernumber = $transaction->borrowernumber;
     my $amount_pence = $callback_data->{amount_to} || $transaction->amount;
     my $amount_decimal = $amount_pence / 100;
 
-    warn "[FlywirePayments] Applying payment - borrowernumber: $borrowernumber, amount: $amount_decimal";
+    $debug and warn "[FlywirePayments] Applying payment - borrowernumber: $borrowernumber, amount: $amount_decimal";
 
     my $patron = Koha::Patrons->find($borrowernumber);
     unless ($patron) {
@@ -210,13 +213,13 @@ sub _apply_payment {
 
     # Get accountlines to pay
     my @accountline_ids = split(',', $transaction->accountline_ids || '');
-    warn "[FlywirePayments] Accountline IDs to pay: " . join(', ', @accountline_ids);
+    $debug and warn "[FlywirePayments] Accountline IDs to pay: " . join(', ', @accountline_ids);
 
     my $lines_to_pay = Koha::Account::Lines->search(
         { accountlines_id => { 'in' => \@accountline_ids } }
     )->as_list;
 
-    warn "[FlywirePayments] Found " . scalar(@{$lines_to_pay}) . " accountlines";
+    $debug and warn "[FlywirePayments] Found " . scalar(@{$lines_to_pay}) . " accountlines";
 
     my $patron_account = Koha::Account->new({ patron_id => $borrowernumber });
     my $payment_result = $patron_account->pay({
@@ -232,7 +235,7 @@ sub _apply_payment {
         ? $payment_result->{payment_id}
         : $payment_result;
 
-    warn "[FlywirePayments] Payment applied, accountline_id: " . ($payment_accountline_id // 'undef');
+    $debug and warn "[FlywirePayments] Payment applied, accountline_id: " . ($payment_accountline_id // 'undef');
 
     # Update transaction with payment result
     $transaction->accountline_id($payment_accountline_id);
@@ -248,9 +251,10 @@ Log delivered status (funds sent to recipient)
 =cut
 
 sub _log_delivered {
-    my ($c, $transaction, $callback_data) = @_;
+    my ($c, $transaction, $callback_data, $flywire_plugin) = @_;
 
-    warn "[FlywirePayments] Payment delivered for transaction: " . $transaction->transaction_id;
+    my $debug = $flywire_plugin->_is_debug_mode;
+    $debug and warn "[FlywirePayments] Payment delivered for transaction: " . $transaction->transaction_id;
     
     # TODO: Generate export file if needed
     # This is where we could trigger any reconciliation/export processes

@@ -40,7 +40,6 @@ use Try::Tiny qw(try catch);
 
 ## Here we set our plugin version
 our $VERSION = '1.0.0';
-our $debug   = 0;
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
@@ -83,6 +82,18 @@ sub _version_check {
     return ( version->parse($kohaversion) > version->parse($minversion) );
 }
 
+=head2 _is_debug_mode
+
+Check if debug mode is enabled in plugin configuration
+
+=cut
+
+sub _is_debug_mode {
+    my ($self) = @_;
+
+    return $self->retrieve_data('FlywireDebugMode') eq 'Yes';
+}
+
 sub opac_online_payment {
     my ( $self, $args ) = @_;
 
@@ -114,7 +125,7 @@ Get the appropriate Flywire API endpoint based on environment setting
 sub _get_api_endpoint {
     my ($self) = @_;
 
-    my $environment = $self->retrieve_data('FlywireEnvironment') || 'demo';
+    my $environment = $self->retrieve_data('FlywireEnvironment') || 'production';
     return $API_ENDPOINTS{$environment};
 }
 
@@ -131,8 +142,8 @@ sub _create_payment_link {
     my $digest = $self->_generate_flywire_digest($json_body);
     my $endpoint = $self->_get_api_endpoint();
 
-    $debug and warn "[FlywirePayments] Creating payment link at: $endpoint";
-    $debug and warn "[FlywirePayments] Payload: $json_body";
+$self->_is_debug_mode and warn "[FlywirePayments] Creating payment link at: $endpoint";
+        $self->_is_debug_mode and warn "[FlywirePayments] Payload: $json_body";
 
     my $ua = LWP::UserAgent->new(
         timeout => 30,
@@ -148,7 +159,7 @@ sub _create_payment_link {
 
     if ($response->is_success) {
         my $result = decode_json($response->decoded_content);
-        $debug and warn "[FlywirePayments] API Response: " . $response->decoded_content;
+        $self->_is_debug_mode and warn "[FlywirePayments] API Response: " . $response->decoded_content;
         return { success => 1, data => $result };
     } else {
         warn "[FlywirePayments] API Error: " . $response->status_line;
@@ -165,7 +176,7 @@ Initiate online payment process via Flywire Pay-by-Link
 
 sub opac_online_payment_begin {
     my ( $self, $args ) = @_;
-    $debug and warn "Inside opac_online_payment_begin for: " . caller . "\n";
+    $self->_is_debug_mode and warn "Inside opac_online_payment_begin for: " . caller . "\n";
 
     my $cgi    = $self->{'cgi'};
     my $schema = Koha::Database->new()->schema();
@@ -306,7 +317,7 @@ Complete online payment process
 sub opac_online_payment_end {
     my ( $self, $args ) = @_;
 
-    $debug and warn "Inside opac_online_payment_end for: " . caller . "\n";
+    $self->_is_debug_mode and warn "Inside opac_online_payment_end for: " . caller . "\n";
     my $cgi = $self->{'cgi'};
 
     my ( $template, $borrowernumber ) = get_template_and_user(
@@ -438,6 +449,7 @@ sub configure {
             FlywirePaymentDestination => $self->retrieve_data('FlywirePaymentDestination'),
             FlywireSharedSecret       => $self->retrieve_data('FlywireSharedSecret'),
             FlywireEnvironment        => $self->retrieve_data('FlywireEnvironment'),
+            FlywireDebugMode          => $self->retrieve_data('FlywireDebugMode'),
         );
 
         print $cgi->header();
@@ -451,6 +463,7 @@ sub configure {
                 FlywirePaymentDestination => scalar $cgi->param('FlywirePaymentDestination'),
                 FlywireSharedSecret       => scalar $cgi->param('FlywireSharedSecret'),
                 FlywireEnvironment        => scalar $cgi->param('FlywireEnvironment'),
+                FlywireDebugMode          => scalar $cgi->param('FlywireDebugMode'),
                 last_configured_by        => C4::Context->userenv->{'number'},
             }
         );
