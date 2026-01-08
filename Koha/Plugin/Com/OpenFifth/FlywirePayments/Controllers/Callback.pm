@@ -137,8 +137,12 @@ sub process {
 
         # Process based on event type
         if ($event_type eq 'guaranteed') {
-            warn "[FlywirePayments] Processing GUARANTEED callback - applying payment";
-            $c->_apply_payment($transaction, $data, $flywire_plugin);
+            if ($transaction->accountline_id) {
+                warn "[FlywirePayments] Payment already applied for transaction " . $transaction->transaction_id . " - skipping";
+            } else {
+                warn "[FlywirePayments] Processing GUARANTEED callback - applying payment";
+                $c->_apply_payment($transaction, $data, $flywire_plugin);
+            }
         }
         elsif ($event_type eq 'delivered') {
             warn "[FlywirePayments] Processing DELIVERED callback";
@@ -214,7 +218,6 @@ sub _apply_payment {
 
     warn "[FlywirePayments] Found " . scalar(@{$lines_to_pay}) . " accountlines";
 
-    # Apply payment
     my $patron_account = Koha::Account->new({ patron_id => $borrowernumber });
     my $payment_result = $patron_account->pay({
         amount     => $amount_decimal,
