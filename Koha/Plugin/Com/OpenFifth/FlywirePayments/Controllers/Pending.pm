@@ -19,8 +19,8 @@ sub _get_pending_accountline_ids {
     });
 
     while (my $transaction = $transactions->next) {
-        if ($transaction->accountline_ids) {
-            push @pending_accountline_ids, split(',', $transaction->accountline_ids);
+        if ($transaction->charge_accountline_ids) {
+            push @pending_accountline_ids, split(',', $transaction->charge_accountline_ids);
         }
     }
 

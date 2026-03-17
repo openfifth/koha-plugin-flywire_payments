@@ -131,15 +131,14 @@ sub process {
 
         $debug and warn "[FlywirePayments] Found transaction: " . $transaction->transaction_id;
 
-        # Update transaction with callback data
+        # Update transaction status
         $transaction->status($status);
         $transaction->flywire_reference($payment_id) if $payment_id;
-        $transaction->callback_data($callback_body);
         $transaction->store();
 
         # Process based on event type
         if ($event_type eq 'guaranteed') {
-            if ($transaction->accountline_id) {
+            if ($transaction->payment_accountline_id) {
                 $debug and warn "[FlywirePayments] Payment already applied for transaction " . $transaction->transaction_id . " - skipping";
             } else {
                 $debug and warn "[FlywirePayments] Processing GUARANTEED callback - applying payment";
@@ -211,15 +210,15 @@ sub _apply_payment {
     # Set up user environment for Koha::Account operations
     $c->_ensure_user_environment($patron);
 
-    # Get accountlines to pay
-    my @accountline_ids = split(',', $transaction->accountline_ids || '');
-    $debug and warn "[FlywirePayments] Accountline IDs to pay: " . join(', ', @accountline_ids);
+    # Get charge accountlines to pay
+    my @charge_accountline_ids = split(',', $transaction->charge_accountline_ids || '');
+    $debug and warn "[FlywirePayments] Charge accountline IDs to pay: " . join(', ', @charge_accountline_ids);
 
     my $lines_to_pay = Koha::Account::Lines->search(
-        { accountlines_id => { 'in' => \@accountline_ids } }
+        { accountlines_id => { 'in' => \@charge_accountline_ids } }
     )->as_list;
 
-    $debug and warn "[FlywirePayments] Found " . scalar(@{$lines_to_pay}) . " accountlines";
+    $debug and warn "[FlywirePayments] Found " . scalar(@{$lines_to_pay}) . " charge accountlines";
 
     my $patron_account = Koha::Account->new({ patron_id => $borrowernumber });
     my $payment_result = $patron_account->pay({
@@ -235,10 +234,10 @@ sub _apply_payment {
         ? $payment_result->{payment_id}
         : $payment_result;
 
-    $debug and warn "[FlywirePayments] Payment applied, accountline_id: " . ($payment_accountline_id // 'undef');
+    $debug and warn "[FlywirePayments] Payment applied, payment_accountline_id: " . ($payment_accountline_id // 'undef');
 
     # Update transaction with payment result
-    $transaction->accountline_id($payment_accountline_id);
+    $transaction->payment_accountline_id($payment_accountline_id);
     $transaction->store();
 
     return $payment_accountline_id;

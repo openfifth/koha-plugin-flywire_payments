@@ -42,7 +42,7 @@ Primary key, auto-incrementing transaction ID.
 
 The patron who initiated the payment.
 
-=head2 accountline_id
+=head2 payment_accountline_id
 
   data_type: 'int'
   extra: {unsigned => 1}
@@ -51,12 +51,12 @@ The patron who initiated the payment.
 
 The payment accountline created when payment is applied.
 
-=head2 accountline_ids
+=head2 charge_accountline_ids
 
   data_type: 'text'
   is_nullable: 1
 
-Comma-separated list of accountline IDs being paid.
+Comma-separated list of charge accountline IDs being paid.
 
 =head2 amount
 
@@ -81,13 +81,6 @@ Flywire payment reference/ID.
   is_nullable: 1
 
 Current status: pending, initiated, processed, guaranteed, delivered, failed, cancelled, reversed.
-
-=head2 callback_data
-
-  data_type: 'text'
-  is_nullable: 1
-
-Raw JSON callback data from Flywire (for debugging/auditing).
 
 =head2 updated
 
@@ -123,14 +116,14 @@ __PACKAGE__->add_columns(
     extra => { unsigned => 1 },
     is_nullable => 1,
   },
-  "accountline_id",
+  "payment_accountline_id",
   {
     data_type => "int",
     extra => { unsigned => 1 },
     is_foreign_key => 1,
     is_nullable => 1,
   },
-  "accountline_ids",
+  "charge_accountline_ids",
   {
     data_type => "text",
     is_nullable => 1,
@@ -151,11 +144,6 @@ __PACKAGE__->add_columns(
     data_type => "varchar",
     size => 50,
     default_value => "pending",
-    is_nullable => 1,
-  },
-  "callback_data",
-  {
-    data_type => "text",
     is_nullable => 1,
   },
   "updated",
@@ -188,7 +176,7 @@ __PACKAGE__->set_primary_key("transaction_id");
 
 =head1 RELATIONS
 
-=head2 accountline
+=head2 payment_accountline
 
 Type: belongs_to
 Related object: L<Koha::Schema::Result::Accountline>
@@ -196,9 +184,9 @@ Related object: L<Koha::Schema::Result::Accountline>
 =cut
 
 __PACKAGE__->belongs_to(
-  "accountline",
+  "payment_accountline",
   "Koha::Schema::Result::Accountline",
-  { accountlines_id => "accountline_id" },
+  { accountlines_id => "payment_accountline_id" },
   {
     is_deferrable => 1,
     join_type     => "LEFT",

@@ -212,10 +212,10 @@ sub opac_online_payment_begin {
 
     # Create a transaction record
     my $transaction = Koha::FlywirePayments::Transaction->new({
-        borrowernumber      => $borrowernumber,
-        amount              => $total_amount_pence,
-        accountline_ids     => join(',', @accountline_ids),
-        status              => 'pending',
+        borrowernumber          => $borrowernumber,
+        amount                  => $total_amount_pence,
+        charge_accountline_ids  => join(',', @accountline_ids),
+        status                  => 'pending',
     })->store();
     my $transaction_id = $transaction->transaction_id;
 
@@ -481,12 +481,11 @@ sub install() {
         CREATE TABLE IF NOT EXISTS $table (
             `transaction_id` INT( 11 ) NOT NULL AUTO_INCREMENT,
             `borrowernumber` INT( 11 ),
-            `accountline_id` INT( 11 ),
-            `accountline_ids` TEXT,
+            `payment_accountline_id` INT( 11 ),
+            `charge_accountline_ids` TEXT,
             `amount` INT( 11 ),
             `flywire_reference` VARCHAR( 255 ),
             `status` VARCHAR( 50 ) DEFAULT 'pending',
-            `callback_data` TEXT,
             `updated` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             `created` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (`transaction_id`),
