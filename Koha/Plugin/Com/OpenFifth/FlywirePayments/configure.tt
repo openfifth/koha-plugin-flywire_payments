@@ -1,140 +1,173 @@
+[% USE raw %]
+[% USE Asset %]
+[% PROCESS 'i18n.inc' %]
+
 [% INCLUDE 'doc-head-open.inc' %]
- <title>Koha: Flywire Pay-by-Link Payments: Configuration</title>
+<title>[% FILTER collapse %]
+    [% t("Configuration") | html %] &rsaquo;
+    [% t("Flywire Pay-by-Link Payments") | html %] &rsaquo;
+    [% t("Plugins") | html %] &rsaquo;
+    [% t("Koha") | html %]
+[% END %]</title>
 [% INCLUDE 'doc-head-close.inc' %]
 </head>
-<body>
-[% INCLUDE 'header.inc' %]
-[% INCLUDE 'cat-search.inc' %]
+<body id="plugins_flywire_configure" class="plugins">
+[% WRAPPER 'header.inc' %]
+    [% INCLUDE 'prefs-admin-search.inc' %]
+[% END %]
 
-<div id="breadcrumbs"><a href="/cgi-bin/koha/mainpage.pl">Home</a> &rsaquo; <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a> &rsaquo; Flywire Pay-by-Link Payments &rsaquo; Configuration</div>
+[% WRAPPER 'sub-header.inc' %]
+    [% WRAPPER breadcrumbs %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/admin/admin-home.pl">Administration</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item %]
+            <a href="/cgi-bin/koha/plugins/run.pl?class=[% CLASS | uri %]&method=configure">Flywire Pay-by-Link Payments</a>
+        [% END %]
+        [% WRAPPER breadcrumb_item bc_active= 1 %]
+            <span>Configuration</span>
+        [% END %]
+    [% END #/ WRAPPER breadcrumbs %]
+[% END #/ WRAPPER sub-header.inc %]
 
 <div class="main container-fluid">
     <div class="row">
+        <div class="col-md-10 order-md-2 order-sm-1">
+            <div class="row">
+                <div class="col-md-9">
+                    <main>
+                        <h1>Flywire Pay-by-Link Payments: Configuration</h1>
 
-        <div class="col-sm-10 col-sm-push-2">
-            <main>
+                        <form method="get">
+                            <!-- Always pass these two parameters so the plugin system knows what to execute! -->
+                            <input type="hidden" name="class" value="[% CLASS %]"/>
+                            <input type="hidden" name="method" value="[% METHOD %]"/>
 
-                <h1>Koha: Flywire Pay-by-Link Payments: Configuration</h1>
-            
-                <form method="get">
-                    <!-- Always pass these two parameters so the plugin system knows what to execute! -->
-                    <input type="hidden" name="class" value="[% CLASS %]"/>
-                    <input type="hidden" name="method" value="[% METHOD %]"/>
+                            <fieldset class="rows">
+                                <legend>General Settings</legend>
 
-                    <fieldset class="rows">
-                        <legend>General Settings</legend>
+                                <ol>
+                                    <li>
+                                        <label for="enable_opac_payments">Enable OPAC Account Payments: </label>
+                                        <select name="enable_opac_payments">
+                                            [% IF enable_opac_payments == 'No' %]
+                                            <option value="No" selected="selected">No</option>
+                                            [% ELSE %]
+                                            <option value="No">No</option>
+                                            [% END %]
 
-                        <ol>
-                            <li>
-                                <label for="enable_opac_payments">Enable OPAC Account Payments: </label>
-                                <select name="enable_opac_payments">
-                                    [% IF enable_opac_payments == 'No' %]
-                                    <option value="No" selected="selected">No</option>
-                                    [% ELSE %]
-                                    <option value="No">No</option>
-                                    [% END %]
+                                            [% IF enable_opac_payments == 'Yes' %]
+                                            <option value="Yes" selected="selected">Yes</option>
+                                            [% ELSE %]
+                                            <option value="Yes">Yes</option>
+                                            [% END %]
+                                        </select>
+                                    </li>
 
-                                    [% IF enable_opac_payments == 'Yes' %]
-                                    <option value="Yes" selected="selected">Yes</option>
-                                    [% ELSE %]
-                                    <option value="Yes">Yes</option>
-                                    [% END %]
-                                </select>
-                            </li>
+                                    <li>
+                                        <label for="FlywireDebugMode">Debug Mode: </label>
+                                        <select name="FlywireDebugMode" id="FlywireDebugMode">
+                                            [% IF FlywireDebugMode == 'Yes' %]
+                                            <option value="Yes" selected="selected">Yes</option>
+                                            [% ELSE %]
+                                            <option value="Yes">Yes</option>
+                                            [% END %]
 
-                            <li>
-                                <label for="FlywireDebugMode">Debug Mode: </label>
-                                <select name="FlywireDebugMode" id="FlywireDebugMode">
-                                    [% IF FlywireDebugMode == 'Yes' %]
-                                    <option value="Yes" selected="selected">Yes</option>
-                                    [% ELSE %]
-                                    <option value="Yes">Yes</option>
-                                    [% END %]
+                                            [% IF FlywireDebugMode == 'No' || !FlywireDebugMode %]
+                                            <option value="No" selected="selected">No</option>
+                                            [% ELSE %]
+                                            <option value="No">No</option>
+                                            [% END %]
+                                        </select>
+                                        <span class="hint">Enable verbose logging and access to demo environment</span>
+                                    </li>
+                                </ol>
+                            </fieldset>
 
-                                    [% IF FlywireDebugMode == 'No' || !FlywireDebugMode %]
-                                    <option value="No" selected="selected">No</option>
-                                    [% ELSE %]
-                                    <option value="No">No</option>
-                                    [% END %]
-                                </select>
-                                <span class="hint">Enable verbose logging and access to demo environment</span>
-                            </li>
-                        </ol>
-                    </fieldset>
-            
-                    <fieldset class="rows">
-                        <legend>Flywire API Settings</legend>
-                        <p>These settings are provided by Flywire when your portal is set up.</p>
-                        <ol>
-                            <li>
-                                <label for="FlywireProvider">Provider (Portal Code): </label>
-                                <input type="text" name="FlywireProvider" value="[% FlywireProvider %]" />
-                                <span class="hint">The recipient/portal ID (e.g., "koha")</span>
-                            </li>
+                            <fieldset class="rows">
+                                <legend>Flywire API Settings</legend>
+                                <p>These settings are provided by Flywire when your portal is set up.</p>
+                                <ol>
+                                    <li>
+                                        <label for="FlywireProvider">Provider (Portal Code): </label>
+                                        <input type="text" name="FlywireProvider" value="[% FlywireProvider %]" />
+                                        <span class="hint">The recipient/portal ID (e.g., "koha")</span>
+                                    </li>
 
-                            <li>
-                                <label for="FlywirePaymentDestination">Payment Destination (Subdomain): </label>
-                                <input type="text" name="FlywirePaymentDestination" value="[% FlywirePaymentDestination %]" />
-                                <span class="hint">Your unique subdomain (e.g., "kohademo")</span>
-                            </li>
+                                    <li>
+                                        <label for="FlywirePaymentDestination">Payment Destination (Subdomain): </label>
+                                        <input type="text" name="FlywirePaymentDestination" value="[% FlywirePaymentDestination %]" />
+                                        <span class="hint">Your unique subdomain (e.g., "kohademo")</span>
+                                    </li>
 
-                            <li>
-                                <label for="FlywireSharedSecret">Shared Secret: </label>
-                                <input type="password" name="FlywireSharedSecret" value="[% FlywireSharedSecret %]" />
-                                <span class="hint">Used for HMAC-SHA256 authentication and callback validation</span>
-                            </li>
-                        </ol>
-                    </fieldset>
+                                    <li>
+                                        <label for="FlywireSharedSecret">Shared Secret: </label>
+                                        <input type="password" name="FlywireSharedSecret" value="[% FlywireSharedSecret %]" />
+                                        <span class="hint">Used for HMAC-SHA256 authentication and callback validation</span>
+                                    </li>
+                                </ol>
+                            </fieldset>
 
-                    <fieldset class="rows" id="debug-settings">
-                        <legend>Debug Settings</legend>
-                        <ol>
-                            <li>
-                                <label for="FlywireEnvironment">Environment: </label>
-                                <select name="FlywireEnvironment" id="FlywireEnvironment">
-                                    [% IF FlywireEnvironment == 'demo' %]
-                                    <option value="demo" selected="selected">Demo (Testing)</option>
-                                    [% ELSE %]
-                                    <option value="demo">Demo (Testing)</option>
-                                    [% END %]
+                            <fieldset class="rows" id="debug-settings">
+                                <legend>Debug Settings</legend>
+                                <ol>
+                                    <li>
+                                        <label for="FlywireEnvironment">Environment: </label>
+                                        <select name="FlywireEnvironment" id="FlywireEnvironment">
+                                            [% IF FlywireEnvironment == 'demo' %]
+                                            <option value="demo" selected="selected">Demo (Testing)</option>
+                                            [% ELSE %]
+                                            <option value="demo">Demo (Testing)</option>
+                                            [% END %]
 
-                                    [% IF FlywireEnvironment == 'production' || !FlywireEnvironment %]
-                                    <option value="production" selected="selected">Production (Live)</option>
-                                    [% ELSE %]
-                                    <option value="production">Production (Live)</option>
-                                    [% END %]
-                                </select>
-                                <span class="hint">Use Demo for testing, Production for live payments</span>
-                            </li>
-                        </ol>
-                    </fieldset>
+                                            [% IF FlywireEnvironment == 'production' || !FlywireEnvironment %]
+                                            <option value="production" selected="selected">Production (Live)</option>
+                                            [% ELSE %]
+                                            <option value="production">Production (Live)</option>
+                                            [% END %]
+                                        </select>
+                                        <span class="hint">Use Demo for testing, Production for live payments</span>
+                                    </li>
+                                </ol>
+                            </fieldset>
 
-                    <fieldset class="rows">
-                        <legend>Active Endpoint</legend>
-                        <p id="active-endpoint"></p>
-                        <p><strong>Callback URL:</strong> [% OPACBaseURL %]/api/v1/contrib/flywirepayments/callback</p>
-                    </fieldset>
-            
-                    <fieldset class="action">
-                        <input type="hidden" name="save" value="1" />
-                        <input type="submit" value="Save configuration" />
-                        <a class="cancel" href="/cgi-bin/koha/plugins/plugins-home.pl">Cancel</a>
-                    </fieldset>
-                </form>
-            </main>
+                            <fieldset class="rows">
+                                <legend>Active Endpoint</legend>
+                                <p id="active-endpoint"></p>
+                                <p><strong>Callback URL:</strong> [% OPACBaseURL %]/api/v1/contrib/flywirepayments/callback</p>
+                            </fieldset>
+
+                            <fieldset class="action">
+                                <input type="hidden" name="save" value="1" />
+                                <input type="submit" class="btn btn-primary" value="Save configuration" />
+                                <a class="cancel" href="/cgi-bin/koha/plugins/plugins-home.pl">Cancel</a>
+                            </fieldset>
+                        </form>
+                    </main>
+                </div>
+                <div class="col-md-3">
+                    <aside>
+                        <div class="sidebar_content">
+                            <p><img src="https://cdn.brandfetch.io/idmEP5YTRJ/w/243/h/52/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1767881495417" alt="Open Fifth" style="max-width: 100%;" /></p>
+                            <h4>About</h4>
+                            <p>This plugin is developed by <a href="https://openfifth.co.uk" target="_blank">Open Fifth</a> and integrates with the Flywire payment portal.</p>
+                            <p style="margin-top: 15px;"><img src="https://cdn.brandfetch.io/id1L6oKjVX/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667924686641" alt="Flywire" style="max-width: 100px;" /></p>
+                            <p><a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank">Flywire API Documentation</a></p>
+                        </div>
+                    </aside>
+                </div>
+            </div>
         </div>
-        
-        <div class="col-sm-2 col-sm-pull-10">
+        <div class="col-md-2 order-sm-2 order-md-1">
             <aside>
-                <p><img src="https://cdn.brandfetch.io/idmEP5YTRJ/w/243/h/52/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1767881495417" alt="Open Fifth" style="max-width: 300px;" /></p>
-                <h4>About</h4>
-                <p>This plugin is developed by <a href="https://openfifth.co.uk" target="_blank">Open Fifth</a> and integrates with the Flywire payment portal.</p>
-                <p style="margin-top: 15px;"><img src="https://cdn.brandfetch.io/id1L6oKjVX/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667924686641" alt="Flywire" style="max-width: 100px;" /></p>
-                <p><a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank">Flywire API Documentation</a></p>
+                [% INCLUDE 'admin-menu.inc' %]
             </aside>
         </div>
-
     </div>
+</div>
 
 <script>
 $(document).ready(function() {
