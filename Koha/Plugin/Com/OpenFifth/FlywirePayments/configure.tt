@@ -5,7 +5,7 @@
 [% INCLUDE 'doc-head-open.inc' %]
 <title>[% FILTER collapse %]
     [% t("Configuration") | html %] &rsaquo;
-    [% t("Flywire Pay-by-Link Payments") | html %] &rsaquo;
+    [% t("Flywire Payments") | html %] &rsaquo;
     [% t("Plugins") | html %] &rsaquo;
     [% t("Koha") | html %]
 [% END %]</title>
@@ -25,7 +25,7 @@
             <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a>
         [% END %]
         [% WRAPPER breadcrumb_item %]
-            <a href="/cgi-bin/koha/plugins/run.pl?class=[% CLASS | uri %]&method=configure">Flywire Pay-by-Link Payments</a>
+            <a href="/cgi-bin/koha/plugins/run.pl?class=[% CLASS | uri %]&method=configure">Flywire Payments</a>
         [% END %]
         [% WRAPPER breadcrumb_item bc_active= 1 %]
             <span>Configuration</span>
@@ -39,7 +39,7 @@
             <div class="row">
                 <div class="col-md-9">
                     <main>
-                        <h1>Flywire Pay-by-Link Payments: Configuration</h1>
+                        <h1>Flywire Payments: Configuration</h1>
 
                         <form method="get">
                             <!-- Always pass these two parameters so the plugin system knows what to execute! -->

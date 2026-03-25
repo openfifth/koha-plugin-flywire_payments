@@ -8,7 +8,7 @@ Koha::Schema::Result::KohaPluginComOpenfifthFlywirepaymentsFlywireTransaction
 
 =head1 DESCRIPTION
 
-DBIx::Class schema for Flywire Pay-by-Link payment transactions.
+DBIx::Class schema for Flywire payment transactions.
 
 =cut
 

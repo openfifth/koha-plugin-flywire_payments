@@ -43,7 +43,7 @@ our $VERSION = '1.0.0';
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
-    name            => 'Flywire Pay-by-Link Online Payments Plugin',
+    name            => 'Flywire Payments Plugin',
     author          => 'OpenFifth',
     date_authored   => '2025-01-06',
     date_updated    => '2025-01-06',
@@ -51,7 +51,7 @@ our $metadata = {
     maximum_version => '',
     version         => $VERSION,
     description     => 'This plugin implements online payments using '
-      . 'the Flywire Pay-by-Link API.',
+      . 'the Flywire API.',
 };
 
 ## Flywire API endpoints

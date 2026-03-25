@@ -22,7 +22,7 @@ use base qw(Koha::Object);
 
 =head1 NAME
 
-Koha::FlywirePayments::Transaction - Koha Flywire Pay-by-Link Transaction Object class
+Koha::FlywirePayments::Transaction - Koha Flywire Transaction Object class
 
 =head1 DESCRIPTION
 
