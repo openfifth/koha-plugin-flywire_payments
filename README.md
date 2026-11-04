@@ -83,3 +83,7 @@ If testing with a demo portal, you must:
 
 - Plugin by [OpenFifth](https://openfifth.co.uk)
 - Issues: Submit via GitHub Issues
+
+## Licence
+
+This plugin is licensed under the GNU Affero General Public License v3.0 or later (`AGPL-3.0-or-later`). See [LICENSE](LICENSE).
