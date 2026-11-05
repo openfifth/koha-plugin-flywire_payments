@@ -56,14 +56,14 @@ use Module::Metadata;
 use Try::Tiny qw(try catch);
 
 ## Here we set our plugin version
-our $VERSION         = '1.0.1';
+our $VERSION         = '1.0.2';
 
 ## Here is our metadata, some keys are required, some are optional
 our $metadata = {
     name            => 'Flywire Payments Plugin',
     author          => 'OpenFifth',
     date_authored   => '2025-01-06',
-    date_updated    => '2026-03-25',
+    date_updated    => '2026-11-05',
     minimum_version => '23.11.00.000',
     maximum_version => '',
     version         => $VERSION,
