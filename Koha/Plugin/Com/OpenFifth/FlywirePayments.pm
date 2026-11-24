@@ -458,7 +458,9 @@ sub configure {
     my ( $self, $args ) = @_;
     my $cgi = $self->{'cgi'};
 
-    unless ( $cgi->param('save') ) {
+    my $op = $cgi->param('op') // '';
+
+    unless ( $op eq 'cud-save' ) {
         my $template = $self->get_template( { file => 'configure.tt' } );
 
         ## Grab the values we already have for our settings, if any exist

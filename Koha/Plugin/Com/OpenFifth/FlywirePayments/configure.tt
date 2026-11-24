@@ -1,208 +1,163 @@
 [% USE raw %]
-[% USE Asset %]
 [% PROCESS 'i18n.inc' %]
+[% SET method = 'configure' %]
+[% SET plugin_title = t("Flywire Payments") %]
+[% WRAPPER 'wrapper-staff-tool-plugin.inc' %]
+<h1>Flywire Payments: Configuration</h1>
 
-[% INCLUDE 'doc-head-open.inc' %]
-<title>[% FILTER collapse %]
-    [% t("Configuration") | html %] &rsaquo;
-    [% t("Flywire Payments") | html %] &rsaquo;
-    [% t("Plugins") | html %] &rsaquo;
-    [% t("Koha") | html %]
-[% END %]</title>
-[% INCLUDE 'doc-head-close.inc' %]
-</head>
-<body id="plugins_flywire_configure" class="plugins">
-[% WRAPPER 'header.inc' %]
-    [% INCLUDE 'prefs-admin-search.inc' %]
-[% END %]
-
-[% WRAPPER 'sub-header.inc' %]
-    [% WRAPPER breadcrumbs %]
-        [% WRAPPER breadcrumb_item %]
-            <a href="/cgi-bin/koha/admin/admin-home.pl">Administration</a>
-        [% END %]
-        [% WRAPPER breadcrumb_item %]
-            <a href="/cgi-bin/koha/plugins/plugins-home.pl">Plugins</a>
-        [% END %]
-        [% WRAPPER breadcrumb_item %]
-            <a href="/cgi-bin/koha/plugins/run.pl?class=[% CLASS | uri %]&method=configure">Flywire Payments</a>
-        [% END %]
-        [% WRAPPER breadcrumb_item bc_active= 1 %]
-            <span>Configuration</span>
-        [% END %]
-    [% END #/ WRAPPER breadcrumbs %]
-[% END #/ WRAPPER sub-header.inc %]
-
-<div class="main container-fluid">
-    <div class="row">
-        <div class="col-md-10 order-md-2 order-sm-1">
-            <div class="row">
-                <div class="col-md-9">
-                    <main>
-                        <h1>Flywire Payments: Configuration</h1>
-
-                        <form method="get">
-                            <!-- Always pass these two parameters so the plugin system knows what to execute! -->
-                            <input type="hidden" name="class" value="[% CLASS %]"/>
-                            <input type="hidden" name="method" value="[% METHOD %]"/>
-
-                            <fieldset class="rows">
-                                <legend>General Settings</legend>
-
-                                <ol>
-                                    <li>
-                                        <label for="enable_opac_payments">Enable OPAC Account Payments: </label>
-                                        <select name="enable_opac_payments">
-                                            [% IF enable_opac_payments == 'No' %]
-                                            <option value="No" selected="selected">No</option>
-                                            [% ELSE %]
-                                            <option value="No">No</option>
-                                            [% END %]
-
-                                            [% IF enable_opac_payments == 'Yes' %]
-                                            <option value="Yes" selected="selected">Yes</option>
-                                            [% ELSE %]
-                                            <option value="Yes">Yes</option>
-                                            [% END %]
-                                        </select>
-                                    </li>
-
-                                    <li>
-                                        <label for="FlywireDebugMode">Debug Mode: </label>
-                                        <select name="FlywireDebugMode" id="FlywireDebugMode">
-                                            [% IF FlywireDebugMode == 'Yes' %]
-                                            <option value="Yes" selected="selected">Yes</option>
-                                            [% ELSE %]
-                                            <option value="Yes">Yes</option>
-                                            [% END %]
-
-                                            [% IF FlywireDebugMode == 'No' || !FlywireDebugMode %]
-                                            <option value="No" selected="selected">No</option>
-                                            [% ELSE %]
-                                            <option value="No">No</option>
-                                            [% END %]
-                                        </select>
-                                        <span class="hint">Enable verbose logging and access to demo environment</span>
-                                    </li>
-                                </ol>
-                            </fieldset>
-
-                            <fieldset class="rows">
-                                <legend>Flywire API Settings</legend>
-                                <p>These settings are provided by Flywire when your portal is set up.</p>
-                                <ol>
-                                    <li>
-                                        <label for="FlywireProvider">Provider (Portal Code): </label>
-                                        <input type="text" name="FlywireProvider" value="[% FlywireProvider %]" />
-                                        <span class="hint">The recipient/portal ID (e.g., "koha")</span>
-                                    </li>
-
-                                    <li>
-                                        <label for="FlywirePaymentDestination">Payment Destination (Subdomain): </label>
-                                        <input type="text" name="FlywirePaymentDestination" value="[% FlywirePaymentDestination %]" />
-                                        <span class="hint">Your unique subdomain (e.g., "kohademo")</span>
-                                    </li>
-
-                                    <li>
-                                        <label for="FlywireSharedSecret">Shared Secret: </label>
-                                        <input type="password" name="FlywireSharedSecret" value="[% FlywireSharedSecret %]" />
-                                        <span class="hint">Used for HMAC-SHA256 authentication and callback validation</span>
-                                    </li>
-                                </ol>
-                            </fieldset>
-
-                            <fieldset class="rows" id="debug-settings">
-                                <legend>Debug Settings</legend>
-                                <ol>
-                                    <li>
-                                        <label for="FlywireEnvironment">Environment: </label>
-                                        <select name="FlywireEnvironment" id="FlywireEnvironment">
-                                            [% IF FlywireEnvironment == 'demo' %]
-                                            <option value="demo" selected="selected">Demo (Testing)</option>
-                                            [% ELSE %]
-                                            <option value="demo">Demo (Testing)</option>
-                                            [% END %]
-
-                                            [% IF FlywireEnvironment == 'production' || !FlywireEnvironment %]
-                                            <option value="production" selected="selected">Production (Live)</option>
-                                            [% ELSE %]
-                                            <option value="production">Production (Live)</option>
-                                            [% END %]
-                                        </select>
-                                        <span class="hint">Use Demo for testing, Production for live payments</span>
-                                    </li>
-                                </ol>
-                            </fieldset>
-
-                            <fieldset class="rows">
-                                <legend>Active Endpoint</legend>
-                                <p id="active-endpoint"></p>
-                                <p><strong>Callback URL:</strong> [% OPACBaseURL %]/api/v1/contrib/flywirepayments/callback</p>
-                            </fieldset>
-
-                            <fieldset class="action">
-                                <input type="hidden" name="save" value="1" />
-                                <input type="submit" class="btn btn-primary" value="Save configuration" />
-                                <a class="cancel" href="/cgi-bin/koha/plugins/plugins-home.pl">Cancel</a>
-                            </fieldset>
-                        </form>
-                    </main>
-                </div>
-                <div class="col-md-3">
-                    <aside>
-                        <div class="sidebar_content">
-                            <p><img src="https://cdn.brandfetch.io/idmEP5YTRJ/w/243/h/52/theme/dark/logo.png?c=1bxid64Mup7aczewSAYMX&t=1767881495417" alt="Open Fifth" style="max-width: 100%;" /></p>
-                            <h4>About</h4>
-                            <p>This plugin is developed by <a href="https://openfifth.co.uk" target="_blank">Open Fifth</a> and integrates with the Flywire payment portal.</p>
-                            <p style="margin-top: 15px;"><img src="https://cdn.brandfetch.io/id1L6oKjVX/theme/dark/logo.svg?c=1bxid64Mup7aczewSAYMX&t=1667924686641" alt="Flywire" style="max-width: 100px;" /></p>
-                            <p><a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank">Flywire API Documentation</a></p>
-                        </div>
-                    </aside>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2 order-sm-2 order-md-1">
-            <aside>
-                [% INCLUDE 'admin-menu.inc' %]
-            </aside>
-        </div>
-    </div>
+<div class="alert alert-info">
+    <p>
+        <img src="data:image/png;base64,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" alt="Open Fifth" height="26" />
+        &nbsp;
+        <img src="data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIGlkPSJMYXllcl8yXzFfIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDE2MSA1NiIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMTYxIDU2OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+CiA8c3R5bGUgdHlwZT0idGV4dC9jc3MiPgogIC5zdDB7ZmlsbDojMTQ3QkQxO30KIDwvc3R5bGU+CiA8ZyBpZD0ibG9nby1mbHl3aXJlLWJsdWUiPgogIDxwYXRoIGlkPSJDb21iaW5lZC1TaGFwZSIgY2xhc3M9InN0MCIgZD0iTTM0LjIsNDMuMUw0MC45LDFoNS40bC02LjcsNDIuMUgzNC4yIE02Ny4yLDQyLjNjLTEuMyw4LjItNiwxMi41LTEzLjUsMTIuNSYjeEE7JiN4OTsmI3g5O2MtNC42LDAtOC4yLTEuNy0xMC42LTQuNmwzLTMuN2MyLjEsMi41LDQuNiwzLjYsNy42LDMuNmM0LjUsMCw3LjMtMi42LDguMi03LjhsMC4zLTIuMWgtMC4xYy0yLjQsMi4zLTUuMywzLjUtOC40LDMuNSYjeEE7JiN4OTsmI3g5O2MtNS44LDAtOC42LTIuOS04LjYtOC41YzAtMS4xLDAuMS0yLjIsMC4zLTMuNGwyLjctMTcuM2g1LjNsLTIuNywxNy4zYy0wLjIsMC45LTAuMiwxLjctMC4yLDIuNGMwLDMuMiwxLjQsNC43LDQuNSw0LjcmI3hBOyYjeDk7JiN4OTtjMy4zLDAsNi4yLTIsOC4xLTUuNWwzLTE5aDUuNEw2Ny4yLDQyLjMgTTEyOCwxOS43bDEuMS01LjNoLTUuM2wtNC41LDI4LjhoNS40bDIuNC0xNS40YzEuMS01LjcsNS4yLTguNSw5LjYtOC41JiN4QTsmI3g5OyYjeDk7YzAuNSwwLDAuOSwwLDEuNCwwbDAuOC01LjFDMTMzLjgsMTMuNSwxMzAsMTYuMSwxMjgsMTkuNyBNMTA3LjYsMTQuNmwtOC45LDE5LjlsLTMuMi0xOS45aC01LjJsLTkuMSwxOS45bC0zLTE5LjloLTUuNWw0LjYsMjguNyYjeEE7JiN4OTsmI3g5O0g4M2w4LjktMTkuOUw5NSw0My4zaDUuNWwxMi44LTI4LjdMMTA3LjYsMTQuNiBNMTA5LjUsNDMuM2w0LjUtMjguN2g1LjRsLTQuNSwyOC43SDEwOS41IE0xMjAuOCw4LjhjMCwxLjctMS40LDMuMS0zLjEsMy4xJiN4QTsmI3g5OyYjeDk7cy0zLjEtMS40LTMuMS0zLjFzMS40LTMuMSwzLjEtMy4xQzExOS41LDUuNywxMjAuOCw3LjEsMTIwLjgsOC44TDEyMC44LDguOHogTTIwLjUsMjIuNWwwLjUtMy4xSDEuOGwwLjgtNWgxOS4ybDAuNC0yLjQmI3hBOyYjeDk7JiN4OTtDMjMuMyw1LDI3LjksMSwzNSwxaDMuOWwtMC44LDQuOWgtMy42Yy0zLjksMC02LjEsMS45LTYuOCw2LjNsLTAuMywyLjJoNy40bC0wLjgsNWgtNy40bC00LjEsMjQuMmMtMS4xLDctNS44LDExLTEyLjksMTAuOUg5LjImI3hBOyYjeDk7JiN4OTtsMC44LTUuM2gwLjNjNCwwLDYuMS0xLjcsNi44LTZsMi42LTE1LjdIMC40bDAuOC01SDIwLjVMMjAuNSwyMi41eiBNMTQ2LjEsMzlMMTQ2LjEsMzljNy41LTAuMSw3LjctNS40LDcuNy01LjRoNSYjeEE7JiN4OTsmI3g5O2MwLDAtMS4xLDEwLTEyLjgsMTBjLTMuNiwwLTYuNi0xLjItOC4zLTMuNGMtMS45LTIuNC0yLjUtNS4zLTItOC45bDAuNC0yLjZjMS4xLTYuNywyLjYtMTUuMSwxNC4zLTE1LjFjMy4yLDAsNS45LDAuOSw3LjcsMi43JiN4QTsmI3g5OyYjeDk7YzEuNiwxLjUsMi41LDMuNywyLjUsNS44YzAsMy4xLTEuMyw1LjUtMy44LDdjLTIuNiwxLjYtNS44LDEuOS04LjIsMS45aC03LjljLTAuNSwyLjgtMC4yLDQuOSwwLjksNi4xJiN4QTsmI3g5OyYjeDk7QzE0Mi42LDM4LjUsMTQ0LjEsMzkuMSwxNDYuMSwzOXogTTE0MS42LDI1LjhMMTQxLjYsMjUuOGwtMC4yLDAuOWg3LjNjNC42LDAsNi43LTEuNCw2LjctNC40YzAtMi41LTIuMS00LTUuNC00JiN4QTsmI3g5OyYjeDk7QzE0NS40LDE4LjMsMTQyLjUsMjEsMTQxLjYsMjUuOHoiPgogIDwvcGF0aD4KIDwvZz4KPC9zdmc+" alt="Flywire" height="26" />
+    </p>
+    <p>This plugin is developed by <a href="https://openfifth.co.uk" target="_blank" rel="noopener">Open Fifth</a> and integrates with the Flywire payment portal.
+    See the <a href="https://developers.flywire.com/education/Content/pay-by-link-json-links.htm" target="_blank" rel="noopener">Flywire API documentation</a>.</p>
 </div>
 
+<form method="post" autocomplete="off">
+    [% INCLUDE 'csrf-token.inc' %]
+    <!-- Always pass class and method so the plugin system knows what to execute -->
+    <input type="hidden" name="class" value="[% CLASS | html %]"/>
+    <input type="hidden" name="method" value="[% METHOD | html %]"/>
+
+    <fieldset class="rows">
+        <legend>General Settings</legend>
+
+        <ol>
+            <li>
+                <label for="enable_opac_payments">Accept payments in the OPAC: </label>
+                <select name="enable_opac_payments" id="enable_opac_payments">
+                    [% IF enable_opac_payments == 'No' %]
+                    <option value="No" selected="selected">No</option>
+                    [% ELSE %]
+                    <option value="No">No</option>
+                    [% END %]
+
+                    [% IF enable_opac_payments == 'Yes' %]
+                    <option value="Yes" selected="selected">Yes</option>
+                    [% ELSE %]
+                    <option value="Yes">Yes</option>
+                    [% END %]
+                </select>
+                <span class="hint">When set to Yes, patrons can pay their charges through Flywire from their OPAC account page.</span>
+            </li>
+
+            <li>
+                <label for="FlywireDebugMode">Debug mode: </label>
+                <select name="FlywireDebugMode" id="FlywireDebugMode">
+                    [% IF FlywireDebugMode == 'Yes' %]
+                    <option value="Yes" selected="selected">Yes</option>
+                    [% ELSE %]
+                    <option value="Yes">Yes</option>
+                    [% END %]
+
+                    [% IF FlywireDebugMode == 'No' || !FlywireDebugMode %]
+                    <option value="No" selected="selected">No</option>
+                    [% ELSE %]
+                    <option value="No">No</option>
+                    [% END %]
+                </select>
+                <span class="hint">Writes extra detail to the logs and allows the Demo environment to be selected. Turn off for live use.</span>
+            </li>
+        </ol>
+    </fieldset>
+
+    <fieldset class="rows">
+        <legend>Flywire API Settings</legend>
+        <p>These settings are provided by Flywire when your portal is set up.</p>
+        <ol>
+            <li>
+                <label for="FlywireProvider">Portal code: </label>
+                <input type="text" name="FlywireProvider" id="FlywireProvider" value="[% FlywireProvider | html %]" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" />
+                <span class="hint">The portal code Flywire gave you when your portal was set up (sent to Flywire as the "provider").</span>
+            </li>
+
+            <li>
+                <label for="FlywirePaymentDestination">Payment destination: </label>
+                <input type="text" name="FlywirePaymentDestination" id="FlywirePaymentDestination" value="[% FlywirePaymentDestination | html %]" autocomplete="off" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" />
+                <span class="hint">The subdomain of your Flywire payment site, without ".flywire.com" (e.g. "kohademo").</span>
+            </li>
+
+            <li>
+                <label for="FlywireSharedSecret">Shared secret: </label>
+                <input type="password" name="FlywireSharedSecret" id="FlywireSharedSecret" value="[% FlywireSharedSecret | html %]" autocomplete="new-password" data-lpignore="true" data-1p-ignore data-bwignore data-form-type="other" />
+                <span class="hint">The secret key from Flywire. It signs payment requests and verifies the payment notifications Flywire sends back to Koha.</span>
+            </li>
+        </ol>
+    </fieldset>
+
+    <fieldset class="rows" id="debug-settings">
+        <legend>Environment (debug mode only)</legend>
+        <ol>
+            <li>
+                <label for="FlywireEnvironment">Environment: </label>
+                <select name="FlywireEnvironment" id="FlywireEnvironment">
+                    [% IF FlywireEnvironment == 'demo' %]
+                    <option value="demo" selected="selected">Demo (Testing)</option>
+                    [% ELSE %]
+                    <option value="demo">Demo (Testing)</option>
+                    [% END %]
+
+                    [% IF FlywireEnvironment == 'production' || !FlywireEnvironment %]
+                    <option value="production" selected="selected">Production (Live)</option>
+                    [% ELSE %]
+                    <option value="production">Production (Live)</option>
+                    [% END %]
+                </select>
+                <span class="hint">Demo is for testing with Flywire's test portal; Production takes real payments.</span>
+            </li>
+        </ol>
+    </fieldset>
+
+    <fieldset class="rows">
+        <legend>Active Endpoint</legend>
+        <p id="active-endpoint"></p>
+        <p><strong>Callback URL:</strong> [% OPACBaseURL %]/api/v1/contrib/flywirepayments/callback</p>
+    </fieldset>
+
+    <fieldset class="action">
+        <input type="hidden" name="op" value="cud-save" />
+        <input type="submit" class="btn btn-primary" value="Save configuration" />
+        <a class="cancel" href="/cgi-bin/koha/plugins/plugins-home.pl">Cancel</a>
+    </fieldset>
+</form>
+
 <script>
-$(document).ready(function() {
-    var endpoints = {
-        demo: 'https://gateway.demo.flywire.com/v1/transfers.json',
-        production: 'https://gateway.flywire.com/v1/transfers.json'
-    };
+    (function () {
+        var endpoints = {
+            demo: 'https://gateway.demo.flywire.com/v1/transfers.json',
+            production: 'https://gateway.flywire.com/v1/transfers.json'
+        };
+        var debugMode = document.getElementById('FlywireDebugMode');
+        var environment = document.getElementById('FlywireEnvironment');
+        var debugSettings = document.getElementById('debug-settings');
+        var endpointDisplay = document.getElementById('active-endpoint');
 
-    function updateDebugVisibility() {
-        var debugEnabled = $('#FlywireDebugMode').val() === 'Yes';
-        
-        if (debugEnabled) {
-            $('#debug-settings').show();
-        } else {
-            $('#debug-settings').hide();
-            // Reset to production when debug is disabled
-            $('#FlywireEnvironment').val('production');
+        function updateEndpointDisplay() {
+            var env = environment.value || 'production';
+            var label = env === 'demo' ? 'Demo' : 'Production';
+            endpointDisplay.textContent = '';
+            var strong = document.createElement('strong');
+            strong.textContent = label + ':';
+            endpointDisplay.appendChild(strong);
+            endpointDisplay.appendChild(document.createTextNode(' ' + endpoints[env]));
         }
-        
-        updateEndpointDisplay();
-    }
 
-    function updateEndpointDisplay() {
-        var env = $('#FlywireEnvironment').val() || 'production';
-        var label = env === 'demo' ? 'Demo' : 'Production';
-        $('#active-endpoint').html('<strong>' + label + ':</strong> ' + endpoints[env]);
-    }
+        function updateDebugVisibility() {
+            if (debugMode.value === 'Yes') {
+                debugSettings.style.display = '';
+            } else {
+                debugSettings.style.display = 'none';
+                // Reset to production when debug is disabled
+                environment.value = 'production';
+            }
+            updateEndpointDisplay();
+        }
 
-    // Initial state
-    updateDebugVisibility();
-
-    // Event handlers
-    $('#FlywireDebugMode').on('change', updateDebugVisibility);
-    $('#FlywireEnvironment').on('change', updateEndpointDisplay);
-});
+        updateDebugVisibility();
+        debugMode.addEventListener('change', updateDebugVisibility);
+        environment.addEventListener('change', updateEndpointDisplay);
+    })();
 </script>
-
-[% INCLUDE 'intranet-bottom.inc' %]
+[% END %]
