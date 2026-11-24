@@ -7,11 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-24
+
 ## [1.0.2] - 2026-11-05
 
 ### Changed
 
 - Adopt the plugin template's CI and release tooling: `npm run release:*` scripts and preflight, `DEVELOPMENT.md`, a `t/00-load.t` smoke test and the GitHub Actions workflow (regenerated from the template).
 
-[Unreleased]: https://github.com/openfifth/koha-plugin-flywire_payments/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/openfifth/koha-plugin-flywire_payments/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/openfifth/koha-plugin-flywire_payments/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/openfifth/koha-plugin-flywire_payments/compare/v1.0.1...v1.0.2
